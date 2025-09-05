@@ -1,0 +1,21 @@
+Obiettivi condivisi:
+___________________
+
+-Obiettivo principale del progetto:
+Costruire un chatbot testuale frustrante con almeno due personalità che utilizza le API di chatgpt 
+
+-Cosa vuole imparare ogni membro:
+Margherita - REACT e le API di ChatGPT
+Cristian -  Approfondire React e in generale lo sviluppo frontend, ma soprattutto imparare a gestire l’intero ciclo di vita di un progetto, dal design al deploy. Allo stesso tempo, voglio affinare le mie capacità di collaborazione in team e di comunicazione tecnica.
+Vincenzo - 
+Valentino - a lavorare in team remoti, capire cosa è e come funziona una webapp e come interagiscono le sue parti
+Francesco - 
+Michele - REACT e le API di ChatGPT
+
+-Livello di qualità desiderato:
+per una verione base del chatbot dovrebbe essere sufficiente anche solo il FE, e che probabilmente faremo una prima versione così, per poi integrare lato BE con un login (should) e se saremo bravi anche con il famoso DB (could/wish), più per studio che per necessità
+
+-Definizione di "successo": 
+imparare il più possibile! ma anche avere una interfaccia testuale con il chatbot che risponde in modo frustrante ed evasivo a domande concrete dell'utente
+
+
