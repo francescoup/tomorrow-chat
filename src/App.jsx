@@ -1,10 +1,18 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { Component, useState } from "react";
+import reactLogo from "./assets/react.svg";
+import viteLogo from "/vite.svg";
+import "./App.css";
+
+//import components
+
+import SendButton from "./components/SendButton";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [count, setCount] = useState(0);
+
+  function handleSendClick() {
+    alert("Il bottone invia funziona");
+  }
 
   return (
     <>
@@ -26,10 +34,10 @@ function App() {
         </p>
       </div>
       <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
+        <SendButton onClick={handleSendClick}>Invia</SendButton>
       </p>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
