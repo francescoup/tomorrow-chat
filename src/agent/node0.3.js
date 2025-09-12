@@ -29,7 +29,7 @@ async function main() {
   while (true) {
     const message = await ask("> ");
     if (message === "exit") {
-      console.log("Conversation:\n", conversation);
+      console.log("mandi\n");
       return;
     }
 
