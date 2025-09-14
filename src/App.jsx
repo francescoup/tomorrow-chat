@@ -1,6 +1,6 @@
-/*import { useState } from "react";
- import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg"; */
+import { useState } from "react";
+import reactLogo from "./assets/react.svg";
+/*import viteLogo from "/vite.svg"; */
 import Avatar from "./assets/Components/Avatar";
 import "./App.css";
 
@@ -14,7 +14,7 @@ function App() {
           Tomorrow dev chat
           <Avatar
             name="Mario Rossi"
-            src="./react.svg"
+            src={reactLogo}
             size="lg"
             rounded="full"
             status="online"
@@ -22,8 +22,8 @@ function App() {
           <Avatar
             name="Mario Rossi"
             size="md"
-            rounded="xl"
-            status="away"
+            rounded="md"
+            status="online"
           ></Avatar>
         </p>
       </div>
