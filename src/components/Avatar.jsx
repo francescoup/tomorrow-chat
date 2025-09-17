@@ -5,7 +5,8 @@ export default function Avatar({
   name = "",
   size = "md", //sm | md | lg | xl
   rounded = "full",
-  className = "",
+  icon,
+  className = "flex items-center justify-center rounded-full bg-gray-200",
   status = "offline", // opzionale: "online" | "away" | "busy" | "offline"
   //ring = false,
 }) {
@@ -51,16 +52,18 @@ export default function Avatar({
             className="w-full h-full object-cover"
             onError={() => setError(true)}
           />
-        ) : (
+        ) : name ? (
           <span className={`${s.text} ${roundedSize}`}>{initials}</span>
-        )}
-        <span
+        ) : icon ? (
+          <span className="text-gray-500 text-sm">{icon}</span>
+        ) : null}
+        {/* <span
           aria-hidden="true"
           className={`absolute bottom-0 right-0 h-3 w-3 rounded-full ring-2 ring-white 
           ${statColor}`}
         >
           <i className="fa-solid fa-circle"></i>
-        </span>
+        </span> */}
       </div>
     </>
   );

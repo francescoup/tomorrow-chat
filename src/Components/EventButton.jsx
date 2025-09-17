@@ -28,7 +28,7 @@ export default function EventButton({
         onClick={onClick}
         disabled={disabled}
       >
-        {children} {icon && <span className="mr-2 ml-2">{icon}</span>}
+        {children} {icon && <span className="mr-2 ml-2 text-2xl">{icon}</span>}
       </button>
     </div>
   );
