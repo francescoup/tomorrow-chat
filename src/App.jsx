@@ -53,7 +53,7 @@ function App() {
         </div>
       </div>
 
-      <div className="flex flex-col h-full max-h-screen w-full bg-gray-100">
+      <div className="flex flex-col h-dvh max-h-screen w-full bg-gray-100">
         <div className="sticky top-0 bg-gray-100">
           <Header />
         </div>
