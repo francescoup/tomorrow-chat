@@ -76,7 +76,7 @@ function App() {
         </div>
       </div>
 
-      <div className="hidden md:block w-96 bg-white dark:bg-[#1A1C20] p-4">
+      <div className="hidden md:block w-96 bg-white dark:bg-[#1A1C21] p-4">
         <p>Right Sidebar</p>
       </div>
     </div>
