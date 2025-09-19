@@ -1,7 +1,4 @@
 import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
-import "./App.css";
 import Header from "./components/Header";
 import ChatApp from "./components/ChatApp";
 import InputForm from "./components/InputForm";
@@ -15,32 +12,58 @@ function App() {
     {
       message: "Ciao! Come posso aiutarti oggi?",
       isUser: false,
-      time: "10:00 AM",
+      time: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
     },
   ]);
 
   const [input, setInput] = useState("");
 
-  const onSend = (e) => {
-    e.preventDefault();
+  const handleSend = async () => {
     if (!input.trim()) return;
 
     const now = new Date();
-
     const userMessage = {
       message: input,
       isUser: true,
       time: now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     };
 
+    // Aggiungi messaggio utente
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
-  };
+    try {
+      const res = await fetch("http://localhost:3001/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: userMessage.message }),
+      });
 
-  const handleKeyPress = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      onSend();
+      const data = await res.json();
+
+      const botMessage = {
+        message: data.reply,
+        isUser: false,
+        time: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      };
+
+      setMessages((prev) => [...prev, botMessage]);
+    } catch (err) {
+      console.error(err);
+      const errorMessage = {
+        message: "Errore nel server. Riprova più tardi.",
+        isUser: false,
+        time: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
     }
   };
 
@@ -60,7 +83,7 @@ function App() {
 
         <ChatApp messages={messages} />
         <div className=" bg-gray-100">
-          <InputForm input={input} setInput={setInput} onSend={onSend} />
+          <InputForm input={input} setInput={setInput} onSend={handleSend} />
         </div>
       </div>
 
