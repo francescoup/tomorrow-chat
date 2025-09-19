@@ -6,7 +6,7 @@ export default function Avatar({
   size = "md", //sm | md | lg | xl
   rounded = "full",
   icon,
-  className = "flex items-center justify-center rounded-full bg-gray-200",
+  className = "flex items-center justify-center rounded-full bg-gray-200 hover:bg-gray-300 transition-colors duration-300",
   status = "offline", // opzionale: "online" | "away" | "busy" | "offline"
   //ring = false,
 }) {
