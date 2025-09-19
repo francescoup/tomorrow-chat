@@ -46,6 +46,7 @@ function App() {
       const botMessage = {
         message: data.reply,
         isUser: false,
+        name: data.agent,
         time: new Date().toLocaleTimeString([], {
           hour: "2-digit",
           minute: "2-digit",
