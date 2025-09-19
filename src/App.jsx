@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
 import "./App.css";
@@ -18,7 +18,21 @@ function App() {
       time: "10:00 AM",
     },
   ]);
+  // theme color change logic
 
+  const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
+
+  useEffect(() => {
+    localStorage.setItem("theme", theme);
+    document.documentElement.classList.toggle("dark", theme === "dark");
+  }, [theme]);
+
+  const darkTheme = () => {
+    setTheme("dark");
+  };
+  const lightTheme = () => {
+    setTheme("light");
+  };
   const [input, setInput] = useState("");
 
   const onSend = (e) => {
@@ -45,26 +59,26 @@ function App() {
   };
 
   return (
-    <div className="flex w-full h-screen overflow-hidden">
-      <div className="hidden md:block w-24 bg-white p-4 border-r-1 border-gray-200">
+    <div className="flex w-full h-screen overflow-hidden dark:bg-[#1A1C20]">
+      <div className="hidden md:block w-24 bg-white dark:bg-[#1A1C20] p-4 border-r-1 border-gray-200 dark:border-gray-700">
         <div className="flex flex-col gap-4 items-center py-2">
           <IconWrapper icon={<MdSettings />} />
           <Avatar size="md" icon={<FaUser />} />
         </div>
       </div>
 
-      <div className="flex flex-col h-dvh max-h-screen w-full bg-gray-100">
+      <div className="flex flex-col h-dvh max-h-screen w-full bg-gray-100 dark:bg-[#20233C]">
         <div className="sticky top-0 bg-gray-100">
-          <Header />
+          <Header light={lightTheme} dark={darkTheme} />
         </div>
 
         <ChatApp messages={messages} />
-        <div className=" bg-gray-100">
+        <div className=" bg-gray-100 dark:bg-[#20233C]">
           <InputForm input={input} setInput={setInput} onSend={onSend} />
         </div>
       </div>
 
-      <div className="hidden md:block w-96 bg-white p-4">
+      <div className="hidden md:block w-96 bg-white dark:bg-[#1A1C20] p-4">
         <p>Right Sidebar</p>
       </div>
     </div>

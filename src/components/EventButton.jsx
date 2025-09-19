@@ -29,7 +29,7 @@ export default function EventButton({
         disabled={disabled}
       >
         <span className="hidden md:block">{children}</span>
-        {icon && <span className=" text-2xl">{icon}</span>}
+        {icon && <span className="text-2xl">{icon}</span>}
       </button>
     </div>
   );
