@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import reactLogo from "./assets/react.svg";
+import viteLogo from "/vite.svg";
 import "./App.css";
 import Header from "./components/Header";
 import ChatApp from "./components/ChatApp";
@@ -16,8 +18,8 @@ function App() {
       time: "10:00 AM",
     },
   ]);
-  
   // theme color change logic
+
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
 
   useEffect(() => {
