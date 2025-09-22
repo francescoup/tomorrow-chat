@@ -43,17 +43,18 @@ function App() {
 
       const data = await res.json();
 
-      const botMessage = {
-        message: data.reply,
-        isUser: false,
-        name: data.agent,
-        time: new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-      };
-
-      setMessages((prev) => [...prev, botMessage]);
+      data.forEach((element) => {
+        let botMessage = {
+          message: element.reply,
+          isUser: false,
+          name: element.agent,
+          time: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+        };
+        if (botMessage.message !== "") setMessages((prev) => [...prev, botMessage]);
+      });
     } catch (err) {
       console.error(err);
       const errorMessage = {
