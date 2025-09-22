@@ -2,10 +2,10 @@ export default function IconWrapper({ onClick, icon, className = "" }) {
   return (
     <button
       onClick={onClick}
-      className={`bg-gray-200 p-3 rounded-full hover:bg-blue-100 transition-colors duration-200 focux:outline-none ${className}`}
+      className={`hover:bg-gray-200 dark:hover:bg-gray-700 p-3 rounded-full transition-colors duration-200 focux:outline-none ${className}`}
       type="button"
     >
-      <span className="text-gray-800 text-sm">{icon}</span>
+      <span className="text-gray-800 dark:text-gray-100 ">{icon}</span>
     </button>
   );
 }
