@@ -5,14 +5,24 @@ export default function BubbleChat({
 }) {
   return (
     <div
-      className={`max-w-xs rounded-2xl p-3 shadow ${
-        isUser ? "bg-blue-500 text-white" : "bg-white  text-gray-800"
-      }`}
+      className={`max-w-xs rounded-2xl p-3 shadow 
+        ${
+          isUser
+            ? // USER (light + dark)
+              "bg-blue-500 text-white dark:bg-[#4283D4] dark:text-white"
+            : // AI (light + dark)
+              "bg-white  text-gray-800 dark:bg-[#292B3B] dark:text-white dark:border dark:border-gray-700"
+        }`}
     >
-      {children}
+      {/* testo messaggio */}
+      <div className="whitespace-pre-wrap break-words">{children}</div>
+
+      {/* timestamp */}
       <p
         className={`mt-1 text-xs ${
-          isUser ? "text-blue-100 flex justify-end" : "text-gray-500"
+          isUser
+            ? "text-blue-100 flex justify-end dark:text-blue-100"
+            : "text-gray-500 dark:text-gray-300"
         }`}
       >
         {time}
