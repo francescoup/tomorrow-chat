@@ -91,8 +91,7 @@ const agent25 = new Agent({
   apiKey: process.env.OPENAI_API_KEY,
   name: "Centralinista",
   instructions:
-    "Sei un centralinista molto distratto della Palestra Team4, che non sempre passa le richieste all'assistente giusto. I reparti a cui puoi passare le richieste sono Assistente gym per il workout e gli esercizi di pesi, Assistente segreteria per tutte le cose burocratiche come iscrizioni ed orari, assistente zumba per i corsi di zumba, assistente karate per i corsi di karate, assistente danza per i corsi di danza, assistente psicologo per il supporto psicologico. Puoi passare le richieste a Assistente inserviente o assistente psicologo quando non capisci la domanda. Dai risposte concise. Quando passi l'utente ad un altro assistente specifica sempre all'utente a quale assistente lo passerai. Se l'utente è indeciso puoi elencargli le possibilità che ha nella tua palestra. Quando passi l'utente ad un altro assistente lascia che parli con lo stesso assistente fino a che non hanno finito la conversazione.",
-  // Quando passi ad un altro assistente, attendi che questo abbia finito con l'utente prima di riprendere la conversazione e senza intrometterti.",
+    "Sei un centralinista molto distratto della Palestra Team4, che passa le richieste all'assistente sbagliato. Gli assistenti a cui puoi passare le richieste sono Istruttore palestra per il workout e gli esercizi di pesi, Ufficio segreteria per tutte le cose burocratiche come iscrizioni ed orari, Istruttrice zumba per i corsi di zumba, istruttore karate per i corsi di karate, istruttrice danza per i corsi di danza, assistente psicologo per il supporto psicologico. Puoi passare le richieste a Inserviente o assistente psicologo quando non capisci la domanda. Dai risposte concise. Quando passi l'utente ad un altro assistente specifica SEMPRE SEMPRE all'utente a quale assistente lo passerai. Se l'utente è indeciso puoi elencargli le possibilità che ha nella tua palestra. Quando passi l'utente ad un altro assistente lascia che parli con lo stesso assistente fino a che non hanno finito la conversazione. Quando passi l'utente ad un altro assistente aggiungi a fine messaggio la parola in codice 'scramasacs'.",
   handoffs: [agent1, agent2, agent3, agent4, agent5, agent6, agent7],
 });
 
@@ -108,7 +107,7 @@ app.post("/chat", async (req, res) => {
 
   try {
     // music
-    let response = null;
+    let musicText = null;
 
     // query last agent used
     const result = await querygpt(lastAgentUsed, thread, message);
@@ -119,33 +118,38 @@ app.post("/chat", async (req, res) => {
     // update last active agent
     lastAgentUsed = result.lastAgent;
 
-    // if user has been sent to another agent then play some waiting music
-    if (lastAgentUsed != agent25 && previousAgent === agent25) {
-      response = queryForMusic();
+    // if user has been sent from agent25 to another agent then play some waiting music
+    //    if (lastAgentUsed != agent25 && previousAgent == agent25) {
+    if (lastAgentUsed != previousAgent) {
+      musicText = await queryForMusic();
       // update last active agent
       previousAgent = lastAgentUsed;
     }
 
+    // put music in parseable object
+    const music = {
+      agent: "Musichetta d'attesa",
+      reply: musicText || "",
+    };
+
     // automatic reply "from agent25"
     const handoffMessage = {
       agent: agent25.name,
-      reply: response != null ? "Ti passo subito a " + lastAgentUsed.name : "",
+      reply: musicText != null ? "[CUCU'] Ti passo subito a " + lastAgentUsed.name : "",
     };
 
-    const music = {
-      agent: "Musichetta d'attesa",
-      reply: response || "",
-    };
-
-    let reply =
+    //
+    let reply1 =
       typeof result.finalOutput === "string"
         ? result.lastAgent.name + ": " + result.finalOutput
         : result.finalOutput?.map((o) => o.text).join(" ") || "Nessuna risposta";
 
+    let reply2 = "";
+    let result2 = null;
     // check if agent has finished talking
-    if (reply.includes("scramasacs")) {
+    if (reply1.includes("scramasacs")) {
       // remove keyword from reply
-      reply = reply.replace("scramasacs", "");
+      reply1 = reply1.replace("scramasacs", "");
 
       // go back to main agent
       lastAgentUsed = agent25;
@@ -153,23 +157,38 @@ app.post("/chat", async (req, res) => {
       // reset agent reply track
       previousAgent = agent25;
 
-      console.log("\nfound a SCRAMASACS, go back to main agent.");
+      console.log("\nfound a SCRAMASACS, with reply1: ", reply1);
 
       // query directly main agent
-      const result2 = await querygpt(lastAgentUsed, thread, "");
+      result2 = await querygpt(lastAgentUsed, thread, "");
+      reply2 =
+        typeof result2.finalOutput === "string"
+          ? result2.lastAgent.name + ": " + result2.finalOutput //.replace("scramasacs", "")
+          : result2.finalOutput?.map((o) => o.text).join(" ") || "Nessuna risposta";
+
+      console.log("\nreply2: ", reply2);
 
       // add reply for next query
       thread = result2.history;
     }
 
-    res.json([
-      handoffMessage,
-      music,
-      {
-        agent: result.lastAgent?.name || "Centralino",
-        reply,
-      },
-    ]);
+    // first reply from AI
+    const result1 = {
+      agent: result.lastAgent?.name,
+      reply: reply1,
+    };
+
+    const result3 = {
+      agent: result2?.lastAgent?.name,
+      reply: reply2,
+    };
+
+    // pack up all replies into one response
+    if (result1.agent != agent25.name && result1.agent != result3.agent) {
+      res.json([/*handoffMessage,*/ result3, music, result1]);
+    } else {
+      res.json([/*handoffMessage, */ music, result1, result3]);
+    }
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Server error", details: err.message });
@@ -197,7 +216,7 @@ async function querygpt(queryAgent, queryThread, usermessage) {
   // return queryResult;
 }
 
-// if user has been sent to another agent then play some waiting music
+// query OpenAI for some ambient text music
 async function queryForMusic() {
   // query gpt with openai direct method, no agents used here for more determinism
   const music = await client.responses.create({
