@@ -18,7 +18,7 @@ export default function EventButton({
   const s = sizes[size] || sizes.md;
 
   // grafica di base che sfrutta className per settaggi futuri
-  const base = `inline-flex items-center justify-center gap-2 rounded-full w-full px-4 py-2.5 font-semibold bg-blue-600 dark:bg-[#4283D4] text-white hover:bg-blue-600-700 transition disabled:opacity-60 disabled:cursor-not-allowed ${s.btn} ${className}`;
+  const base = `inline-flex items-center justify-center gap-2 rounded-full w-full px-4 py-2.5 font-semibold bg-blue-600 dark:bg-[#4283D4] dark:hover:bg-[#4283D4] transition text-white hover:bg-blue-600-700 disabled:opacity-60 disabled:cursor-not-allowed ${s.btn} ${className}`;
 
   return (
     <div>
