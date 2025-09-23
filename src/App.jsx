@@ -39,31 +39,78 @@ function App() {
 
   const [input, setInput] = useState("");
 
-  const onSend = (e) => {
-    e.preventDefault();
+  // const onSend = (e) => {
+  //   e.preventDefault();
+  //   if (!input.trim()) return;
+
+  //   const now = new Date();
+
+  //   const userMessage = {
+  //     message: input,
+  //     isUser: true,
+  //     time: now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+  //   };
+
+  //   setMessages((prev) => [...prev, userMessage]);
+  //   setInput("");
+  // };
+  const handleSend = async () => {
     if (!input.trim()) return;
 
     const now = new Date();
-
     const userMessage = {
       message: input,
       isUser: true,
       time: now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     };
 
+    // Aggiungi messaggio utente
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
-  };
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: userMessage.message }),
+      });
 
+      const data = await res.json();
+
+      data.forEach((element) => {
+        let botMessage = {
+          message: element.reply,
+          isUser: false,
+          name: element.agent,
+          time: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+        };
+        if (botMessage.message !== "")
+          setMessages((prev) => [...prev, botMessage]);
+      });
+    } catch (err) {
+      console.error(err);
+      const errorMessage = {
+        message: "Errore nel server. Riprova più tardi.",
+        isUser: false,
+        time: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    }
+  };
   const handleKeyPress = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      onSend();
+      handleSend();
     }
   };
 
   return (
-    <div className="flex w-full h-screen overflow-hidden dark:bg-[#1A1C20]">
+    <div className="flex w-full h-screen overflow-hidden dark:bg-[#1A1C20] transition-all">
       <div className="hidden md:block w-24 bg-white dark:bg-[#1A1C20] p-4 border-r-1 border-gray-200 dark:border-gray-700">
         <div className="flex flex-col gap-4 items-center py-2">
           <IconWrapper icon={<MdSettings />} />
@@ -78,7 +125,7 @@ function App() {
 
         <ChatApp messages={messages} />
         <div className=" bg-gray-100 dark:bg-[#20233C]">
-          <InputForm input={input} setInput={setInput} onSend={onSend} />
+          <InputForm input={input} setInput={setInput} onSend={handleSend} />
         </div>
       </div>
 

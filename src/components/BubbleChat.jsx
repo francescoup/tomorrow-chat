@@ -5,7 +5,7 @@ export default function BubbleChat({
 }) {
   return (
     <div
-      className={`max-w-xs rounded-2xl p-3 shadow 
+      className={`max-w-lg rounded-2xl p-3 shadow 
         ${
           isUser
             ? // USER (light + dark)
