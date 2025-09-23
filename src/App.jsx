@@ -18,8 +18,8 @@ function App() {
       time: "10:00 AM",
     },
   ]);
-  // theme color change logic
 
+  // theme color change logic
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
 
   useEffect(() => {
@@ -27,12 +27,16 @@ function App() {
     document.documentElement.classList.toggle("dark", theme === "dark");
   }, [theme]);
 
-  const darkTheme = () => {
-    setTheme("dark");
-  };
-  const lightTheme = () => {
-    setTheme("light");
-  };
+  // Questa logica usava due funzioni distinte per cambiare tema (light e dark).
+  // In questo modo Header può gestire il cambio tema in modo più semplice e reattivo, senza duplicare funzioni.
+  // Mantengo queste funzioni commentate solo come riferimento storico.
+  // const darkTheme = () => {
+  //   setTheme("dark");
+  // };
+  // const lightTheme = () => {
+  //   setTheme("light");
+  // };
+
   const [input, setInput] = useState("");
 
   const onSend = (e) => {
@@ -69,7 +73,7 @@ function App() {
 
       <div className="flex flex-col h-dvh max-h-screen w-full bg-gray-100 dark:bg-[#20233C]">
         <div className="sticky top-0 bg-gray-100">
-          <Header light={lightTheme} dark={darkTheme} />
+          <Header theme={theme} setTheme={setTheme} />
         </div>
 
         <ChatApp messages={messages} />
