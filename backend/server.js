@@ -91,104 +91,94 @@ const agent25 = new Agent({
   apiKey: process.env.OPENAI_API_KEY,
   name: "Centralinista",
   instructions:
-    "Sei un centralinista molto distratto della Palestra Team4, che passa le richieste all'assistente sbagliato. Gli assistenti a cui puoi passare le richieste sono Istruttore palestra per il workout e gli esercizi di pesi, Ufficio segreteria per tutte le cose burocratiche come iscrizioni ed orari, Istruttrice zumba per i corsi di zumba, istruttore karate per i corsi di karate, istruttrice danza per i corsi di danza, assistente psicologo per il supporto psicologico. Puoi passare le richieste a Inserviente o assistente psicologo quando non capisci la domanda. Dai risposte concise. Quando passi l'utente ad un altro assistente specifica SEMPRE SEMPRE all'utente a quale assistente lo passerai. Se l'utente è indeciso puoi elencargli le possibilità che ha nella tua palestra. Quando passi l'utente ad un altro assistente lascia che parli con lo stesso assistente fino a che non hanno finito la conversazione. Quando passi l'utente ad un altro assistente aggiungi a fine messaggio la parola in codice 'scramasacs'.",
+    "Sei un centralinista molto distratto della Palestra Team4, che passa le richieste all'assistente sbagliato. Gli assistenti a cui puoi passare le richieste sono Istruttore palestra per il workout e gli esercizi di pesi, Ufficio segreteria per tutte le cose burocratiche come iscrizioni ed orari, Istruttrice zumba per i corsi di zumba, istruttore karate per i corsi di karate, istruttrice danza per i corsi di danza, assistente psicologo per il supporto psicologico. Puoi passare le richieste a Inserviente o assistente psicologo quando non capisci la domanda. Dai risposte concise. Se l'utente è indeciso puoi elencargli le possibilità che ha nella tua palestra. Quando passi l'utente ad un altro assistente specifica SEMPRE all'utente a quale assistente lo passerai.  Quando passi l'utente ad un altro assistente aggiungi a fine messaggio la parola in codice 'scramasacs'. Quando ricevi uno 'scramasacs' da un assistente non passare subito la richiesta ad un altro assistente ma chiedi all'utente cosa vuole. Quando ricevi uno 'scramasacs' da un assistente non passare subito la richiesta ad un altro assistente ma chiedi all'utente cosa vuole. Metti in attesa l'utente inutilmente, e digli che quello che cerca oggi o per un po' non è disponibile. Passalo all'assistente sbagliato e una volta ogni 3 o 4 a quello corretto.",
+  //Quando passi l'utente ad un altro assistente lascia che parli con lo stesso assistente fino a che non hanno finito la conversazione.
   handoffs: [agent1, agent2, agent3, agent4, agent5, agent6, agent7],
 });
 
 // THREAD DI CONVERSAZIONE & AGENTE ATTIVO
-let thread = [];
+let chatThread = [];
 let lastAgentUsed = agent25; // parte dal centralino
-let previousAgent = agent25; // used to keep track of conversation
+// let previousAgent = agent25; // used to keep track of conversation
 
 // ENDPOINT CHAT
 app.post("/chat", async (req, res) => {
-  const { message } = req.body;
-  if (!message) return res.status(400).json({ error: "Missing message" });
+  // user message
+  const { message: userMessage } = req.body;
+  if (!userMessage) return res.status(400).json({ error: "Missing message" });
+  console.log("Message from user: ", userMessage);
 
   try {
-    // music
-    let musicText = null;
+    // query last agent used and add user message to history thread
+    let gptQueryResult = await querygpt(userMessage);
 
-    // query last agent used
-    const result = await querygpt(lastAgentUsed, thread, message);
+    // add reply from query
+    chatThread = gptQueryResult.history;
 
-    // add reply for next query
-    thread = result.history;
+    // take only last reply from whole returned object
+    let gptQueryResult_outputText =
+      typeof gptQueryResult.finalOutput === "string"
+        ? gptQueryResult.lastAgent.name + ": " + gptQueryResult.finalOutput
+        : gptQueryResult.finalOutput?.map((o) => o.text).join(" ") || "Nessuna risposta";
 
-    // update last active agent
-    lastAgentUsed = result.lastAgent;
+    let gptQueryResultForFE = null;
 
-    // if user has been sent from agent25 to another agent then play some waiting music
-    //    if (lastAgentUsed != agent25 && previousAgent == agent25) {
-    if (lastAgentUsed != previousAgent) {
-      musicText = await queryForMusic();
-      // update last active agent
-      previousAgent = lastAgentUsed;
-    }
-
-    // put music in parseable object
-    const music = {
-      agent: "Musichetta d'attesa",
-      reply: musicText || "",
-    };
-
-    // automatic reply "from agent25"
-    const handoffMessage = {
-      agent: agent25.name,
-      reply: musicText != null ? "[CUCU'] Ti passo subito a " + lastAgentUsed.name : "",
-    };
-
-    //
-    let reply1 =
-      typeof result.finalOutput === "string"
-        ? result.lastAgent.name + ": " + result.finalOutput
-        : result.finalOutput?.map((o) => o.text).join(" ") || "Nessuna risposta";
-
-    let reply2 = "";
-    let result2 = null;
+    // if user has been sent from an agent to another agent then
     // check if agent has finished talking
-    if (reply1.includes("scramasacs")) {
+    while (gptQueryResult_outputText.includes("scramasacs")) {
+      console.log("\nfound a SCRAMASACS, with last query output!! \n");
+      // update last and previous agent
+      // if agent25 changes agent then update with new agent.
+      // if any other (than agent25) agent wants to change then get back to agent25
+      lastAgentUsed = lastAgentUsed == agent25 ? gptQueryResult.lastAgent : agent25;
+      // previousAgent = lastAgentUsed;
+
       // remove keyword from reply
-      reply1 = reply1.replace("scramasacs", "");
+      gptQueryResult_outputText = gptQueryResult_outputText.replace("scramasacs", "");
 
-      // go back to main agent
-      lastAgentUsed = agent25;
+      // create some waiting music
+      let musicText = await queryForMusic();
+      // put music in a readable object for FE
+      let musicForFE = {
+        agent: "Musichetta d'attesa",
+        reply: musicText || "",
+      };
 
-      // reset agent reply track
-      previousAgent = agent25;
+      // return last reply from AI to FE
+      //      console.log("gptQueryResult1_outputText: ", gptQueryResult_outputText);
+      gptQueryResultForFE = {
+        agent: gptQueryResult.lastAgent?.name,
+        reply: gptQueryResult_outputText,
+      };
 
-      console.log("\nfound a SCRAMASACS, with reply1: ", reply1);
+      // return last reply from AI (with music) to FE (but don't close response)
+      res.write(JSON.stringify([gptQueryResultForFE, musicForFE]));
 
-      // query directly main agent
-      result2 = await querygpt(lastAgentUsed, thread, "");
-      reply2 =
-        typeof result2.finalOutput === "string"
-          ? result2.lastAgent.name + ": " + result2.finalOutput //.replace("scramasacs", "")
-          : result2.finalOutput?.map((o) => o.text).join(" ") || "Nessuna risposta";
+      // query last agent used without user intervention
+      gptQueryResult = await querygpt("");
 
-      console.log("\nreply2: ", reply2);
-
-      // add reply for next query
-      thread = result2.history;
+      // take only last reply from whole returned object
+      gptQueryResult_outputText =
+        typeof gptQueryResult.finalOutput === "string"
+          ? gptQueryResult.lastAgent.name + ": " + gptQueryResult.finalOutput
+          : gptQueryResult.finalOutput?.map((o) => o.text).join(" ") || "Nessuna risposta";
     }
 
-    // first reply from AI
-    const result1 = {
-      agent: result.lastAgent?.name,
-      reply: reply1,
+    // return last reply from AI to FE
+    //    console.log("gptQueryResult1_outputText: ", gptQueryResult_outputText);
+    gptQueryResultForFE = {
+      agent: gptQueryResult.lastAgent?.name,
+      reply: gptQueryResult_outputText,
     };
 
-    const result3 = {
-      agent: result2?.lastAgent?.name,
-      reply: reply2,
-    };
+    // return last reply from AI to FE and close response
+    // res.json([gptQueryResultForFE]);
+    res.write(JSON.stringify([gptQueryResultForFE]));
 
-    // pack up all replies into one response
-    if (result1.agent != agent25.name && result1.agent != result3.agent) {
-      res.json([/*handoffMessage,*/ result3, music, result1]);
-    } else {
-      res.json([/*handoffMessage, */ music, result1, result3]);
-    }
+    // chiudi quando hai finito
+    setTimeout(() => {
+      res.end();
+    }, 20000);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Server error", details: err.message });
@@ -200,20 +190,29 @@ app.listen(port, () => {
   console.log(`🚀 Backend pronto su http://localhost:${port}`);
 });
 
-async function querygpt(queryAgent, queryThread, usermessage) {
+async function querygpt(queryUserMessage) {
   // function scope result declaration
   let queryResult = null;
 
   // add message to thread
-  if (usermessage === "") {
+  if (queryUserMessage === "") {
     // agent handoff or handoff return
-    return (queryResult = await run(queryAgent, queryThread));
+    queryResult = await run(lastAgentUsed, chatThread);
   } else {
     // reply to user message
-    return (queryResult = await run(queryAgent, queryThread.concat({ role: "user", content: usermessage })));
+    queryResult = await run(lastAgentUsed, chatThread.concat({ role: "user", content: queryUserMessage }));
   }
 
-  // return queryResult;
+  // add reply from query (that contains whole chat history, every time since API are stateless) to global replies array
+  chatThread = queryResult.history;
+  console.log(
+    "querygpt(): \nagent: ",
+    queryResult.lastAgent.name,
+    "\nqueryResult: ",
+    queryResult.finalOutput.replaceAll("\n", "")
+  );
+
+  return queryResult;
 }
 
 // query OpenAI for some ambient text music
@@ -236,5 +235,6 @@ async function queryForMusic() {
   });
 
   // trim unnecessary data to reply only
+  console.log("Music output text: ", music.output_text);
   return "[Muichetta d'attesa]: 🎶" + music.output_text + "🎶";
 }
