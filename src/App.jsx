@@ -10,7 +10,8 @@ import { FaUser } from "react-icons/fa";
 function App() {
   const [messages, setMessages] = useState([
     {
-      message: "Ciao! Come posso aiutarti oggi?",
+      message:
+        "Buongiorno e benvenut* nel servizio di assistenza online h24 della Palestra Team4, come posso aiutarti?",
       isUser: false,
       time: new Date().toLocaleTimeString([], {
         hour: "2-digit",
@@ -55,21 +56,22 @@ function App() {
         try {
           const data = JSON.parse(chunk);
 
-          data.forEach((element) => {
-            let botMessage = {
-              message: element.reply,
-              isUser: false,
-              name: element.agent,
-              time: new Date().toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              }),
-            };
-            if (botMessage.message !== "") setMessages((prev) => [...prev, botMessage]);
-            console.log("botMessage.message: ", botMessage.message);
-          });
+          //       data.forEach((element) => {
+          let botMessage = {
+            message: data.reply,
+            isUser: false,
+            name: data.agent,
+            time: new Date().toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+          };
+          if (botMessage.message !== "") setMessages((prev) => [...prev, botMessage]);
+          // console.log("botMessage.message: ", botMessage.message);
+          //          });
         } catch (e) {
-          console.error("Errore parsing chunk:", e, chunk);
+          console.error("Errore parsing chunk:", e, "\n\n\n\n\n", "\n\n\n");
+          console.error("chunk:", chunk, "\n\n\n");
         }
       }
       // const data = await res.json();
