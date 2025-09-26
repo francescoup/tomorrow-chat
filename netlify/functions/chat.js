@@ -134,161 +134,7 @@ function getSessionData(sessionId) {
   return sessionData.get(sessionId);
 }
 
-// HANDLER PRINCIPALE NETLIFY
-export const handler = async (event, context) => {
-  // Gestione CORS
-  const headers = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "Content-Type",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Content-Type": "application/json",
-  };
-
-  // Gestione preflight OPTIONS
-  if (event.httpMethod === "OPTIONS") {
-    return {
-      statusCode: 200,
-      headers,
-      body: "",
-    };
-  }
-
-  // Solo POST è accettato
-  if (event.httpMethod !== "POST") {
-    return {
-      statusCode: 405,
-      headers,
-      body: JSON.stringify({ error: "Method Not Allowed" }),
-    };
-  }
-
-  try {
-    const { message: userMessage, sessionId = "default" } = JSON.parse(event.body);
-
-    if (!userMessage) {
-      return {
-        statusCode: 400,
-        headers,
-        body: JSON.stringify({ error: "Missing message" }),
-      };
-    }
-
-    console.log("Message from user: ", userMessage);
-
-    // Ottieni la sessione
-    const session = getSessionData(sessionId);
-
-    // reset output for FE
-    let gptQueryResultForFE = null;
-    const responses = [];
-
-    // query last agent used and add user message to history thread
-    let gptQueryResult = await querygpt(userMessage, session);
-
-    // add reply from query
-    session.chatThread = gptQueryResult.history;
-
-    // take only last reply from whole returned object
-    let gptQueryResult_outputText =
-      typeof gptQueryResult.finalOutput === "string"
-        ? gptQueryResult.lastAgent.name + ": " + gptQueryResult.finalOutput
-        : gptQueryResult.finalOutput?.map((o) => o.text).join(" ") || "Nessuna risposta";
-
-    // packup last reply from AI to FE
-    gptQueryResultForFE = {
-      agent: gptQueryResult.lastAgent?.name,
-      reply: gptQueryResult_outputText.replace("scramasacs", ""), // remove keyword from reply
-    };
-
-    // check if there has already been an handoff
-    session.handedoff = checkIfHandoff(session);
-    if (session.handedoff) {
-      // create some waiting music
-      const musicResponse = await queryForMusic();
-      responses.push(musicResponse);
-    }
-
-    console.log(
-      "\n\nPARSING THIS:",
-      util.inspect(gptQueryResultForFE, { showHidden: true, depth: null, colors: true }),
-      "\n\n"
-    );
-    responses.push(gptQueryResultForFE);
-
-    // check if agent wanted to handoff to another (has outputted a scramasacs)
-    session.agentWantsHandoff = gptQueryResult_outputText.includes("scramasacs");
-    if (session.agentWantsHandoff && !session.handedoff) {
-      console.log(
-        "\nfound a SCRAMASACS, with last query output!! Agent was: ",
-        gptQueryResult.lastAgent.name,
-        session.lastAgentUsed.name
-      );
-
-      // create some waiting music
-      const musicResponse = await queryForMusic();
-      responses.push(musicResponse);
-
-      // query last agent used and add user message to history thread
-      gptQueryResult = await querygpt(userMessage, session);
-
-      // sometimes they handoff without saying bye bye so it's better to check
-      session.handedoff = checkIfHandoff(session);
-
-      // add reply from query
-      session.chatThread = gptQueryResult.history;
-
-      // take only last reply from whole returned object
-      gptQueryResult_outputText =
-        typeof gptQueryResult.finalOutput === "string"
-          ? gptQueryResult.lastAgent.name + ": " + gptQueryResult.finalOutput
-          : gptQueryResult.finalOutput?.map((o) => o.text).join(" ") || "Nessuna risposta";
-
-      // packup last reply from AI to FE
-      gptQueryResultForFE = {
-        agent: gptQueryResult.lastAgent?.name,
-        reply: gptQueryResult_outputText.replace("scramasacs", ""), // remove keyword from reply
-      };
-
-      console.log(
-        "\n\nPARSING THIS:",
-        util.inspect(gptQueryResultForFE, { showHidden: true, depth: null, colors: true }),
-        "\n\n"
-      );
-      responses.push(gptQueryResultForFE);
-    }
-
-    // something bad has happened here,
-    // agent wanted to handoff but didn't do it for some reasons
-    // this happens quite often
-    if (session.agentWantsHandoff && !session.handedoff) {
-      gptQueryResultForFE = {
-        agent: "Palestra Team 4 staff",
-        reply:
-          "Ci dispiace per l'inconveniente, l'operatore non è stato in grado di trasferire la tua richiesta ad un altro operatore. Cercheremo di somministrare dei corsi sull'uso dei telefoni.",
-      };
-
-      console.log(
-        "\nErrore di handoff non fatto:",
-        util.inspect(gptQueryResultForFE, { showHidden: true, depth: null, colors: true }),
-        "\n\n"
-      );
-      responses.push(gptQueryResultForFE);
-    }
-
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify({ responses, sessionId }),
-    };
-  } catch (err) {
-    console.error(err);
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({ error: "Server error", details: err.message }),
-    };
-  }
-};
+// Helper functions
 
 // This function calls OpenAI API with global thread and adds eventual user messages
 async function querygpt(queryUserMessage, session) {
@@ -361,6 +207,189 @@ async function queryForMusic() {
   }
 }
 
+// HANDLER PRINCIPALE NETLIFY
+export const handler = async (event, context) => {
+  // Gestisce solo richieste POST
+  if (event.httpMethod !== "POST") {
+    return {
+      statusCode: 405,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+      },
+      body: JSON.stringify({ error: "Method not allowed" }),
+    };
+  }
+
+  // Gestisce richieste CORS preflight
+  if (event.httpMethod === "OPTIONS") {
+    return {
+      statusCode: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+      },
+      body: "",
+    };
+  }
+
+  // Solo POST è accettato
+  if (event.httpMethod !== "POST") {
+    return {
+      statusCode: 405,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+      },
+      body: JSON.stringify({ error: "Method Not Allowed" }),
+    };
+  }
+
+  try {
+    const { message, sessionId = "default" } = JSON.parse(event.body);
+
+    if (!message) {
+      return {
+        statusCode: 400,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Headers": "Content-Type",
+        },
+        body: JSON.stringify({ error: "Missing message" }),
+      };
+    }
+
+    console.log("Message from user: ", message);
+
+    // Ottieni i dati della sessione
+    const session = getSessionData(sessionId);
+
+    // reset output for FE
+    let gptQueryResultForFE = null;
+    const responses = [];
+
+    // query last agent used and add user message to history thread
+    let gptQueryResult = await querygpt(message, session);
+
+    // add reply from query
+    session.chatThread = gptQueryResult.history;
+
+    // take only last reply from whole returned object
+    let gptQueryResult_outputText =
+      typeof gptQueryResult.finalOutput === "string"
+        ? gptQueryResult.lastAgent.name + ": " + gptQueryResult.finalOutput
+        : gptQueryResult.finalOutput?.map((o) => o.text).join(" ") || "Nessuna risposta";
+
+    // packup last reply from AI to FE
+    gptQueryResultForFE = {
+      agent: gptQueryResult.lastAgent?.name,
+      reply: gptQueryResult_outputText.replace("scramasacs", ""), // remove keyword from reply
+    };
+
+    // check if there has already been an handoff
+    session.handedoff = checkIfHandoff(session);
+    if (session.handedoff) {
+      // create some waiting music
+      const musicResponse = await queryForMusic();
+      responses.push(musicResponse);
+    }
+
+    console.log(
+      "\n\nPARSING THIS:",
+      util.inspect(gptQueryResultForFE, { showHidden: true, depth: null, colors: true }),
+      "\n\n"
+    );
+    responses.push(gptQueryResultForFE);
+
+    // check if agent wanted to handoff to another (has outputted a scramasacs)
+    session.agentWantsHandoff = gptQueryResult_outputText.includes("scramasacs");
+    if (session.agentWantsHandoff && !session.handedoff) {
+      console.log(
+        "\nfound a SCRAMASACS, with last query output!! Agent was: ",
+        gptQueryResult.lastAgent.name,
+        session.lastAgentUsed.name
+      );
+
+      // create some waiting music
+      const musicResponse = await queryForMusic();
+      responses.push(musicResponse);
+
+      // query last agent used and add user message to history thread
+      gptQueryResult = await querygpt(message, session);
+
+      // sometimes they handoff without saying bye bye so it's better to check
+      session.handedoff = checkIfHandoff(session);
+
+      // add reply from query
+      session.chatThread = gptQueryResult.history;
+
+      // take only last reply from whole returned object
+      gptQueryResult_outputText =
+        typeof gptQueryResult.finalOutput === "string"
+          ? gptQueryResult.lastAgent.name + ": " + gptQueryResult.finalOutput
+          : gptQueryResult.finalOutput?.map((o) => o.text).join(" ") || "Nessuna risposta";
+
+      // packup last reply from AI to FE
+      gptQueryResultForFE = {
+        agent: gptQueryResult.lastAgent?.name,
+        reply: gptQueryResult_outputText.replace("scramasacs", ""), // remove keyword from reply
+      };
+
+      console.log(
+        "\n\nPARSING THIS:",
+        util.inspect(gptQueryResultForFE, { showHidden: true, depth: null, colors: true }),
+        "\n\n"
+      );
+      responses.push(gptQueryResultForFE);
+    }
+
+    // something bad has happened here,
+    // agent wanted to handoff but didn't do it for some reasons
+    // this happens quite often
+    if (session.agentWantsHandoff && !session.handedoff) {
+      gptQueryResultForFE = {
+        agent: "Palestra Team 4 staff",
+        reply:
+          "Ci dispiace per l'inconveniente, l'operatore non è stato in grado di trasferire la tua richiesta ad un altro operatore. Cercheremo di somministrare dei corsi sull'uso dei telefoni.",
+      };
+
+      console.log(
+        "\nErrore di handoff non fatto:",
+        util.inspect(gptQueryResultForFE, { showHidden: true, depth: null, colors: true }),
+        "\n\n"
+      );
+      responses.push(gptQueryResultForFE);
+    }
+
+    return {
+      statusCode: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(responseData),
+    };
+  } catch (err) {
+    console.error("Error:", err);
+    return {
+      statusCode: 500,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        error: "Server error",
+        details: err.message,
+      }),
+    };
+  }
+};
+
 // this function checks in chatThread[] if there have been an handoff between agents
 function checkIfHandoff(session) {
   // when there are at least 2 objects in chatThread
@@ -380,7 +409,7 @@ function checkIfHandoff(session) {
     let handedOffTo =
       typeof session.chatThread[session.chatThread.length - 2]?.output?.text === "string"
         ? JSON.parse(session.chatThread[session.chatThread.length - 2].output?.text).assistant
-        : "rutto.mp3";
+        : "rutto.mp3 tribute =)";
     console.log("Handed off to: ", handedOffTo);
 
     if (session.chatThread[session.chatThread.length - 2]?.type == "function_call_result") {
