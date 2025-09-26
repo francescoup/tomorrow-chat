@@ -77,8 +77,8 @@ function App() {
       });
 
       // decodifica stream testuale
-      // const reader = res.body.getReader();
-      // const decoder = new TextDecoder();
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
 
       // while (true) {
       //   const { done, value } = await reader.read();
@@ -106,21 +106,45 @@ function App() {
       //     console.error("Chunk: ", chunk, "\n\n");
       //   }
       // }
+      let fullText = "";
 
-      const data = await res.json();
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
 
-      data.forEach((element) => {
-        let botMessage = {
-          message: element.reply,
-          isUser: false,
-          name: element.agent,
-          time: new Date().toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-        };
-        if (botMessage.message !== "") setMessages((prev) => [...prev, botMessage]);
-      });
+        const chunk = decoder.decode(value, { stream: true });
+        fullText += chunk;
+
+        try {
+          const data = JSON.parse(fullText);
+          let botMessage = {
+            message: data.reply,
+            isUser: false,
+            name: data.agent,
+            time: new Date().toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+          };
+          if (botMessage.message !== "") setMessages((prev) => [...prev, botMessage]);
+          fullText = ""; // reset dopo parsing riuscito
+        } catch (e) {
+          // Non fare nulla: potrebbe non essere ancora completo
+        }
+      }
+      // const data = await res.json();
+      // data.forEach((element) => {
+      //   let botMessage = {
+      //     message: element.reply,
+      //     isUser: false,
+      //     name: element.agent,
+      //     time: new Date().toLocaleTimeString([], {
+      //       hour: "2-digit",
+      //       minute: "2-digit",
+      //     }),
+      //   };
+      //   if (botMessage.message !== "") setMessages((prev) => [...prev, botMessage]);
+      // });
     } catch (err) {
       console.error(err);
       const errorMessage = {
