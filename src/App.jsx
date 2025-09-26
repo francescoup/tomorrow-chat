@@ -163,7 +163,7 @@ function App() {
       </div>
 
       <div className="hidden md:block w-96 bg-white dark:bg-[#1A1C21] p-4">
-        <p>Right Sidebar</p>
+        <p>Chat History</p>
       </div>
     </div>
   );
