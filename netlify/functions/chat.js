@@ -342,7 +342,7 @@ export const handler = async (event, context) => {
     // packup last reply from AI to FE
     gptQueryResultForFE = {
       agent: gptQueryResult.lastAgent?.name.replaceAll("_", " "),
-      reply: gptQueryResult_outputText.replace("scramasacs", ""), // remove keyword from reply
+      reply: gptQueryResult_outputText.replace(/scramasacs/gi, ""), // remove keyword from reply
     };
 
     // check if there has already been an handoff
@@ -395,7 +395,7 @@ export const handler = async (event, context) => {
       // packup last reply from AI to FE
       gptQueryResultForFE = {
         agent: gptQueryResult.lastAgent?.name.replaceAll("_", " "),
-        reply: gptQueryResult_outputText.replace("scramasacs", ""), // remove keyword from reply
+        reply: gptQueryResult_outputText.replace(/scramasacs/gi, ""), // remove keyword from reply
       };
 
       console.log(
