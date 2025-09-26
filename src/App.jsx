@@ -1,6 +1,4 @@
 import { useState, useEffect } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
 import "./App.css";
 import Header from "./components/Header";
 import ChatApp from "./components/ChatApp";
@@ -13,9 +11,13 @@ import { FaUser } from "react-icons/fa";
 function App() {
   const [messages, setMessages] = useState([
     {
-      message: "Ciao! Come posso aiutarti oggi?",
+      message:
+        "Buongiorno e benvenut* nel servizio di assistenza online h24 della Palestra Team4, come posso aiutarti?",
       isUser: false,
-      time: "10:00 AM",
+      time: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
     },
   ]);
 
@@ -74,21 +76,52 @@ function App() {
         body: JSON.stringify({ message: userMessage.message }),
       });
 
-      const data = await res.json();
+      // decodifica stream testuale
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
 
-      data.forEach((element) => {
-        let botMessage = {
-          message: element.reply,
-          isUser: false,
-          name: element.agent,
-          time: new Date().toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-        };
-        if (botMessage.message !== "")
-          setMessages((prev) => [...prev, botMessage]);
-      });
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+
+        // ogni chunk contiene un oggetto JSON
+        try {
+          const data = JSON.parse(chunk);
+
+          let botMessage = {
+            message: data.reply,
+            isUser: false,
+            name: data.agent,
+            time: new Date().toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+          };
+          if (botMessage.message !== "") setMessages((prev) => [...prev, botMessage]);
+          console.debug("botMessage.message: ", botMessage.message);
+        } catch (e) {
+          console.error("Errore parsing chunk: ", e, "\n\n\n");
+          console.error("Chunk: ", chunk, "\n\n");
+        }
+      }
+
+      // const data = await res.json();
+
+      // data.forEach((element) => {
+      //   let botMessage = {
+      //     message: element.reply,
+      //     isUser: false,
+      //     name: element.agent,
+      //     time: new Date().toLocaleTimeString([], {
+      //       hour: "2-digit",
+      //       minute: "2-digit",
+      //     }),
+      //   };
+      //   if (botMessage.message !== "")
+      //     setMessages((prev) => [...prev, botMessage]);
+      // });
     } catch (err) {
       console.error(err);
       const errorMessage = {
