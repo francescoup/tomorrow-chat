@@ -29,35 +29,11 @@ function App() {
     document.documentElement.classList.toggle("dark", theme === "dark");
   }, [theme]);
 
-  // Questa logica usava due funzioni distinte per cambiare tema (light e dark).
-  // In questo modo Header può gestire il cambio tema in modo più semplice e reattivo, senza duplicare funzioni.
-  // Mantengo queste funzioni commentate solo come riferimento storico.
-  // const darkTheme = () => {
-  //   setTheme("dark");
-  // };
-  // const lightTheme = () => {
-  //   setTheme("light");
-  // };
-
   const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  // const onSend = (e) => {
-  //   e.preventDefault();
-  //   if (!input.trim()) return;
-
-  //   const now = new Date();
-
-  //   const userMessage = {
-  //     message: input,
-  //     isUser: true,
-  //     time: now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-  //   };
-
-  //   setMessages((prev) => [...prev, userMessage]);
-  //   setInput("");
-  // };
   const handleSend = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() || isLoading) return;
 
     const now = new Date();
     const userMessage = {
@@ -68,73 +44,75 @@ function App() {
 
     // Aggiungi messaggio utente
     setMessages((prev) => [...prev, userMessage]);
+    const currentInput = input;
     setInput("");
+    setIsLoading(true);
+
     try {
-      const res = await fetch("/api/chat", {
+      const res = await fetch("/.netlify/functions/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: userMessage.message }),
+        body: JSON.stringify({
+          message: currentInput,
+          sessionId: "default", // potresti generare un ID unico per sessione
+        }),
       });
 
-      // decodifica stream testuale
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+      const data = await res.json();
+      console.log("Received data:", data);
 
-        const chunk = decoder.decode(value, { stream: true });
-
-        // ogni chunk contiene un oggetto JSON
-        try {
-          const data = JSON.parse(chunk);
-
-          let botMessage = {
+      // Verifica che data sia un array
+      if (Array.isArray(data)) {
+        data.forEach((element) => {
+          if (element && element.reply && element.reply.trim() !== "") {
+            const botMessage = {
+              message: element.reply,
+              isUser: false,
+              name: element.agent || "Bot",
+              time: new Date().toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              }),
+            };
+            setMessages((prev) => [...prev, botMessage]);
+          }
+        });
+      } else {
+        // Se non è un array, gestisci come singola risposta
+        if (data && data.reply && data.reply.trim() !== "") {
+          const botMessage = {
             message: data.reply,
             isUser: false,
-            name: data.agent,
+            name: data.agent || "Bot",
             time: new Date().toLocaleTimeString([], {
               hour: "2-digit",
               minute: "2-digit",
             }),
           };
-          if (botMessage.message !== "") setMessages((prev) => [...prev, botMessage]);
-          console.debug("botMessage.message: ", botMessage.message);
-        } catch (e) {
-          console.error("Errore parsing chunk: ", e, "\n\n\n");
-          console.error("Chunk: ", chunk, "\n\n");
+          setMessages((prev) => [...prev, botMessage]);
         }
       }
-
-      // const data = await res.json();
-
-      // data.forEach((element) => {
-      //   let botMessage = {
-      //     message: element.reply,
-      //     isUser: false,
-      //     name: element.agent,
-      //     time: new Date().toLocaleTimeString([], {
-      //       hour: "2-digit",
-      //       minute: "2-digit",
-      //     }),
-      //   };
-      //   if (botMessage.message !== "")
-      //     setMessages((prev) => [...prev, botMessage]);
-      // });
     } catch (err) {
-      console.error(err);
+      console.error("Errore nella richiesta:", err);
       const errorMessage = {
         message: "Errore nel server. Riprova più tardi.",
         isUser: false,
+        name: "Sistema",
         time: new Date().toLocaleTimeString([], {
           hour: "2-digit",
           minute: "2-digit",
         }),
       };
       setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
     }
   };
+
   const handleKeyPress = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -158,7 +136,13 @@ function App() {
 
         <ChatApp messages={messages} />
         <div className=" bg-gray-100 dark:bg-[#20233C]">
-          <InputForm input={input} setInput={setInput} onSend={handleSend} />
+          <InputForm
+            input={input}
+            setInput={setInput}
+            onSend={handleSend}
+            onKeyPress={handleKeyPress}
+            disabled={isLoading}
+          />
         </div>
       </div>
 
