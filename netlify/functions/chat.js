@@ -365,7 +365,7 @@ export const handler = async (event, context) => {
     responses.push(gptQueryResultForFE);
 
     // check if agent wanted to handoff to another (has outputted a scramasacs)
-    session.agentWantsHandoff = gptQueryResult_outputText.includes("scramasacs");
+    session.agentWantsHandoff = gptQueryResult_outputText.toLowerCase().includes("scramasacs");
     if (session.agentWantsHandoff && !session.handedoff) {
       console.log(
         "\nfound a SCRAMASACS, with last query output!! Agent was: ",
