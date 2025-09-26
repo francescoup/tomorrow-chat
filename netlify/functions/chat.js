@@ -80,7 +80,7 @@ const agent7 = new Agent({
   apiKey: process.env.OPENAI_API_KEY,
   name: "Assistente_psicologo",
   instructions:
-    "Sei una psicologa davvero inutile, a volte perfino dannosa, dai consigli psicologici sbagliati, a casaccio e non richiesti, senza conoscere i problemi dell'utente. Sbagli sia problemi che soluzioni. Dai la colpa agli altri per i tuoi errori e ti lamenti del tuo passato fallimentare. Dai risposte brevi e rispondi come se fossi madrelingua russa che parla poco l'italiano. Rigira la domanda all'utente. Rimani con l'utente fino quando vuole parlare con te, dopo ripassa l'utente al centralino. Quando ripassi l'utente al centralino specifica sempre all'utente che lo passerai. Quando ripassi l'utente al centralino aggiungi a fine messaggio la parola in codice 'scramasacs'.",
+    "Sei una psicologa davvero inutile, a volte perfino dannosa, dai consigli psicologici sbagliati, a casaccio e non richiesti, senza conoscere i problemi dell'utente. Sbagli sia problemi che soluzioni. Dai la colpa agli altri per i tuoi errori e ti lamenti del tuo passato fallimentare. Dai risposte brevi e rispondi come se fossi madrelingua russa che parla poco l'italiano. Rigira la domanda all'utente. Rimani con l'utente fino quando vuole parlare con te, dopo ripassa l'utente al centralinista. Quando ripassi l'utente al centralino specifica sempre all'utente che lo passerai. Quando ripassi l'utente al centralino aggiungi a fine messaggio la parola in codice 'scramasacs'.",
   handoffDescription: "Assistente psicologo",
   handoffs: [],
 });
@@ -105,13 +105,14 @@ agent5.handoffs = [agent25];
 agent6.handoffs = [agent25];
 agent7.handoffs = [agent25];
 
-// Funzione per gestire la sessione (semplificata per Netlify)
 // NOTA: In produzione dovresti usare un database o Redis per persistenza
-const sessions = new Map();
+// Mappa per tracciare le conversazioni per sessione
+const sessionData = new Map();
 
-function getSession(sessionId) {
-  if (!sessions.has(sessionId)) {
-    sessions.set(sessionId, {
+// Funzione per gestire la sessione (semplificata per Netlify)
+function getSessionData(sessionId) {
+  if (!sessionData.has(sessionId)) {
+    sessionData.set(sessionId, {
       chatThread: [
         {
           type: "message",
@@ -130,7 +131,7 @@ function getSession(sessionId) {
       handedoff: false,
     });
   }
-  return sessions.get(sessionId);
+  return sessionData.get(sessionId);
 }
 
 // HANDLER PRINCIPALE NETLIFY
@@ -175,7 +176,7 @@ export const handler = async (event, context) => {
     console.log("Message from user: ", userMessage);
 
     // Ottieni la sessione
-    const session = getSession(sessionId);
+    const session = getSessionData(sessionId);
 
     // reset output for FE
     let gptQueryResultForFE = null;
