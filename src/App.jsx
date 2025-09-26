@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
 import "./App.css";
+import { useState, useEffect } from "react";
 import Header from "./components/Header";
 import ChatApp from "./components/ChatApp";
 import InputForm from "./components/InputForm";
@@ -10,6 +10,7 @@ import { FaUser } from "react-icons/fa";
 
 function App() {
   const [messages, setMessages] = useState([
+
     {
       message:
         "Buongiorno e benvenut* nel servizio di assistenza online h24 della Palestra Team4, come posso aiutarti?",
@@ -23,12 +24,12 @@ function App() {
 
   // theme color change logic
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
-
+  
   useEffect(() => {
     localStorage.setItem("theme", theme);
     document.documentElement.classList.toggle("dark", theme === "dark");
   }, [theme]);
-
+  
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -42,7 +43,6 @@ function App() {
       time: now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     };
 
-    // Aggiungi messaggio utente
     setMessages((prev) => [...prev, userMessage]);
     const currentInput = input;
     setInput("");
@@ -65,7 +65,6 @@ function App() {
       const data = await res.json();
       console.log("Received data:", data);
 
-      // Verifica che data sia un array
       if (Array.isArray(data)) {
         data.forEach((element) => {
           if (element && element.reply && element.reply.trim() !== "") {
@@ -82,7 +81,6 @@ function App() {
           }
         });
       } else {
-        // Se non è un array, gestisci come singola risposta
         if (data && data.reply && data.reply.trim() !== "") {
           const botMessage = {
             message: data.reply,
@@ -110,6 +108,7 @@ function App() {
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
+
     }
   };
 
@@ -134,7 +133,7 @@ function App() {
           <Header theme={theme} setTheme={setTheme} />
         </div>
 
-        <ChatApp messages={messages} />
+      <ChatApp messages={messages} loading={isLoading} />
         <div className=" bg-gray-100 dark:bg-[#20233C]">
           <InputForm
             input={input}

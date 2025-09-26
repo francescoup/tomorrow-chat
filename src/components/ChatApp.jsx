@@ -5,8 +5,16 @@ import InputForm from "./InputForm";
 import { FaUser } from "react-icons/fa";
 import { RiOpenaiFill } from "react-icons/ri";
 import TextInput from "./TextInput";
+import LoaderBubble from "./LoaderBubble";
+import { useRef } from "react";
+import { useEffect } from "react";
 
-export default function ChatApp({ messages }) {
+export default function ChatApp({ messages, loading }) {
+  const endChat = useRef(null);
+  useEffect(() => {
+    endChat.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, loading]);
+
   return (
     <div className="flex-1 overflow-y-auto p-4">
       {messages.map((msg, index) => (
@@ -31,6 +39,15 @@ export default function ChatApp({ messages }) {
           )}
         </div>
       ))}
+      {loading && (
+        <div className="mb-4 flex justify-start">
+          <div className="mr-2">
+            <Avatar icon={<RiOpenaiFill />} size="sm" />
+          </div>
+          <LoaderBubble />
+        </div>
+      )}
+      <div ref={endChat}></div>
     </div>
   );
 }
