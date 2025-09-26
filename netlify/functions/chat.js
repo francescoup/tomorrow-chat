@@ -336,12 +336,12 @@ export const handler = async (event, context) => {
     // take only last reply from whole returned object
     let gptQueryResult_outputText =
       typeof gptQueryResult.finalOutput === "string"
-        ? gptQueryResult.lastAgent.name.replace("_", " ") + ": " + gptQueryResult.finalOutput
+        ? gptQueryResult.lastAgent.name.replaceAll("_", " ") + ": " + gptQueryResult.finalOutput
         : gptQueryResult.finalOutput?.map((o) => o.text).join(" ") || "Nessuna risposta";
 
     // packup last reply from AI to FE
     gptQueryResultForFE = {
-      agent: gptQueryResult.lastAgent?.name,
+      agent: gptQueryResult.lastAgent?.name.replaceAll("_", " "),
       reply: gptQueryResult_outputText.replace("scramasacs", ""), // remove keyword from reply
     };
 
@@ -389,12 +389,12 @@ export const handler = async (event, context) => {
       // take only last reply from whole returned object
       gptQueryResult_outputText =
         typeof gptQueryResult.finalOutput === "string"
-          ? gptQueryResult.lastAgent.name.replace("_", " ") + ": " + gptQueryResult.finalOutput
+          ? gptQueryResult.lastAgent.name.replaceAll("_", " ") + ": " + gptQueryResult.finalOutput
           : gptQueryResult.finalOutput?.map((o) => o.text).join(" ") || "Nessuna risposta";
 
       // packup last reply from AI to FE
       gptQueryResultForFE = {
-        agent: gptQueryResult.lastAgent?.name,
+        agent: gptQueryResult.lastAgent?.name.replaceAll("_", " "),
         reply: gptQueryResult_outputText.replace("scramasacs", ""), // remove keyword from reply
       };
 
