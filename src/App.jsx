@@ -77,51 +77,50 @@ function App() {
       });
 
       // decodifica stream testuale
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
+      // const reader = res.body.getReader();
+      // const decoder = new TextDecoder();
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+      // while (true) {
+      //   const { done, value } = await reader.read();
+      //   if (done) break;
 
-        const chunk = decoder.decode(value, { stream: true });
+      //   const chunk = decoder.decode(value, { stream: true });
 
-        // ogni chunk contiene un oggetto JSON
-        try {
-          const data = JSON.parse(chunk);
+      //   // ogni chunk contiene un oggetto JSON
+      //   try {
+      //     const data = JSON.parse(chunk);
 
-          let botMessage = {
-            message: data.reply,
-            isUser: false,
-            name: data.agent,
-            time: new Date().toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            }),
-          };
-          if (botMessage.message !== "") setMessages((prev) => [...prev, botMessage]);
-          console.debug("botMessage.message: ", botMessage.message);
-        } catch (e) {
-          console.error("Errore parsing chunk: ", e, "\n\n\n");
-          console.error("Chunk: ", chunk, "\n\n");
-        }
-      }
+      //     let botMessage = {
+      //       message: data.reply,
+      //       isUser: false,
+      //       name: data.agent,
+      //       time: new Date().toLocaleTimeString([], {
+      //         hour: "2-digit",
+      //         minute: "2-digit",
+      //       }),
+      //     };
+      //     if (botMessage.message !== "") setMessages((prev) => [...prev, botMessage]);
+      //     console.debug("botMessage.message: ", botMessage.message);
+      //   } catch (e) {
+      //     console.error("Errore parsing chunk: ", e, "\n\n\n");
+      //     console.error("Chunk: ", chunk, "\n\n");
+      //   }
+      // }
 
-      // const data = await res.json();
+      const data = await res.json();
 
-      // data.forEach((element) => {
-      //   let botMessage = {
-      //     message: element.reply,
-      //     isUser: false,
-      //     name: element.agent,
-      //     time: new Date().toLocaleTimeString([], {
-      //       hour: "2-digit",
-      //       minute: "2-digit",
-      //     }),
-      //   };
-      //   if (botMessage.message !== "")
-      //     setMessages((prev) => [...prev, botMessage]);
-      // });
+      data.forEach((element) => {
+        let botMessage = {
+          message: element.reply,
+          isUser: false,
+          name: element.agent,
+          time: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+        };
+        if (botMessage.message !== "") setMessages((prev) => [...prev, botMessage]);
+      });
     } catch (err) {
       console.error(err);
       const errorMessage = {
