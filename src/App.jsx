@@ -7,10 +7,10 @@ import IconWrapper from "./components/IconWrapper";
 import Avatar from "./components/Avatar";
 import { MdSettings } from "react-icons/md";
 import { FaUser } from "react-icons/fa";
+import logoAvatar from "./assets/img/logoAvatar.png";
 
 function App() {
   const [messages, setMessages] = useState([
-
     {
       message:
         "Buongiorno e benvenut* nel servizio di assistenza online h24 della Palestra Team4, come posso aiutarti?",
@@ -24,12 +24,12 @@ function App() {
 
   // theme color change logic
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
-  
+
   useEffect(() => {
     localStorage.setItem("theme", theme);
     document.documentElement.classList.toggle("dark", theme === "dark");
   }, [theme]);
-  
+
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -108,7 +108,6 @@ function App() {
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
-
     }
   };
 
@@ -124,7 +123,8 @@ function App() {
       <div className="hidden md:block w-24 bg-white dark:bg-[#1A1C20] p-4 border-r-1 border-gray-200 dark:border-gray-700">
         <div className="flex flex-col gap-4 items-center py-2">
           <IconWrapper icon={<MdSettings />} />
-          <Avatar size="md" icon={<FaUser />} />
+          {/* <Avatar size="md" icon={<FaUser />} /> */}
+          <Avatar size="md" src={logoAvatar} />
         </div>
       </div>
 
@@ -133,7 +133,7 @@ function App() {
           <Header theme={theme} setTheme={setTheme} />
         </div>
 
-      <ChatApp messages={messages} loading={isLoading} />
+        <ChatApp messages={messages} loading={isLoading} />
         <div className=" bg-gray-100 dark:bg-[#20233C]">
           <InputForm
             input={input}

@@ -8,6 +8,7 @@ import TextInput from "./TextInput";
 import LoaderBubble from "./LoaderBubble";
 import { useRef } from "react";
 import { useEffect } from "react";
+import logoAvatar from "../assets/img/logoAvatar.png";
 
 export default function ChatApp({ messages, loading }) {
   const endChat = useRef(null);
@@ -26,7 +27,8 @@ export default function ChatApp({ messages, loading }) {
         >
           {!msg.isUser && (
             <div className=" mr-2">
-              <Avatar icon={<RiOpenaiFill />} size="sm" />
+              {/* <Avatar icon={<RiOpenaiFill />} size="sm" /> */}
+              <Avatar src={logoAvatar} size="sm" />
             </div>
           )}
           <BubbleChat isUser={msg.isUser} time={msg.time}>
@@ -42,7 +44,8 @@ export default function ChatApp({ messages, loading }) {
       {loading && (
         <div className="mb-4 flex justify-start">
           <div className="mr-2">
-            <Avatar icon={<RiOpenaiFill />} size="sm" />
+            <Avatar icon={logoAvatar} size="sm" />
+            {/*  <Avatar icon={<RiOpenaiFill />} size="sm" /> */}
           </div>
           <LoaderBubble />
         </div>

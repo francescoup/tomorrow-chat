@@ -49,7 +49,7 @@ export default function Avatar({
           <img
             src={src}
             alt={name || "AV"}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-contain"
             onError={() => setError(true)}
           />
         ) : name ? (
@@ -68,3 +68,5 @@ export default function Avatar({
     </>
   );
 }
+/* Ho modicato la classe dell'img per rendere il logo adattabile alle dimensioni del cerchietto:
+ ho sostituito object-cover con object-contain */
