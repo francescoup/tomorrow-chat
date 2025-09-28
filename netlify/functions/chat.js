@@ -201,7 +201,7 @@ async function querygpt(queryUserMessage, session) {
   );
 
   console.debug(
-    "\n\n\n\n\nHISTORY: ",
+    "\n\n\nHISTORY within querygpt() call: ",
     util.inspect(queryResult.history, {
       showHidden: true,
       depth: null,
@@ -256,13 +256,15 @@ function checkIfHandoff(session) {
     let lastAgentUsed_name = "";
     // check whether the second-to-last is an handoff (this means agent has changed)
     console.debug(
-      "\nchatThread: ",
-      session.chatThread,
-      "\n\nchatThread[chatThread.length - 2]?.type: ",
+      // "\nchatThread: ",
+      // session.chatThread,
+      "\nINSIDE checkIfHandoff():\nchatThread[chatThread.length - 2]?.type: ",
       session.chatThread[session.chatThread.length - 2]?.type,
-      "\n\nchatThread[chatThread.length - 2]?.output.text: ",
+      "\nchatThread[chatThread.length - 2]?.output.text: ",
       session.chatThread[session.chatThread.length - 2]?.output?.text,
-      "\n\nJSON.parse(chatThread[chatThread.length - 2]?.output?.text)?.assistant: "
+      // "\nJSON.parse(chatThread[chatThread.length - 2]?.output?.text)?.assistant: ",
+      // JSON.parse(session.chatThread[session.chatThread.length - 2]?.output?.text)?.assistant,
+      "\n\n"
     );
 
     let handedOffTo =
@@ -317,7 +319,7 @@ function checkIfHandoff(session) {
 // HANDLER PRINCIPALE NETLIFY //
 // Handler con debug estensivo per tracciare il problema
 export const handler = async (event, context) => {
-  console.log("=== INIZIO HANDLER ===");
+  console.log("\n\n\n\n\n\n\n=== INIZIO HANDLER ===");
 
   if (event.httpMethod === "OPTIONS") {
     return {
@@ -403,6 +405,53 @@ export const handler = async (event, context) => {
       console.log("🔄 STEP 2: Handoff rilevato?", hadHandoffAfterFirst);
 
       if (hadHandoffAfterFirst) {
+        console.log(
+          "FOUND HIDDEN MESSAGE: session.chatThread[session.chatThread.length - 4]?.role: ",
+          session.chatThread[session.chatThread.length - 4]?.role
+        );
+        console.log(
+          "FOUND HIDDEN MESSAGE: session.chatThread[session.chatThread.length - 5]?.role: ",
+          session.chatThread[session.chatThread.length - 5]?.role
+        );
+
+        // find if there are other non-human replies all packed into one
+        // go back until there is a human interaction
+        let i = 4;
+        let oldResponses = [];
+        while (session.chatThread[session.chatThread.length - i]?.role !== "user") {
+          if (i >= session.chatThread.length) {
+            break;
+          }
+          if (session.chatThread[session.chatThread.length - i]?.role === "assistant") {
+            // name of replying agent is found in history just before ita message (in position arraylength-(i+1))
+            let oldAgentName =
+              typeof session.chatThread[session.chatThread.length - (i + 1)]?.output?.text === "string"
+                ? JSON.parse(session.chatThread[session.chatThread.length - (i + 1)].output?.text).assistant
+                : "Qualcuno della Palestra Team4";
+
+            let messageBeforeHandoff = {
+              agent: "MAYBE" + oldAgentName.replaceAll("_", " "),
+              reply: session.chatThread[session.chatThread.length - i].content[0]?.text.replace(/scramasacs/gi, ""),
+            };
+
+            console.log("FOUND HIDDEN MESSAGE: ", messageBeforeHandoff);
+            oldResponses.push(messageBeforeHandoff);
+          }
+          i++;
+        }
+        // responses are found in reverse order, so now reverse end put them into array for FE
+        if (oldResponses.length != 0) {
+          for (let i = 1; i <= oldResponses.length; i++) {
+            responses.push(oldResponses[oldResponses.length - i]);
+            console.log(
+              "pushed HIDDEN MESSAGE: oldResponses[oldResponses.length - ",
+              i,
+              "]: ",
+              oldResponses[oldResponses.length - i]
+            );
+          }
+        }
+
         console.log("🎵 STEP 2: Generazione musica per handoff...");
         try {
           const musicResponse = await queryForMusic();
@@ -411,16 +460,6 @@ export const handler = async (event, context) => {
           console.log("📋 STEP 2: Musica aggiunta. Responses ora:", responses.length, "elementi");
         } catch (musicError) {
           console.error("❌ STEP 2: Errore musica:", musicError);
-        }
-
-        // find if there are other non-human replies all packed into one
-        if (
-          session.chatThread[session.chatThread.length - 4]?.role === "assistant" &&
-          session.chatThread[session.chatThread.length - 5]?.role === "user"
-        ) {
-          let messageBeforeHandoff = session.chatThread[session.chatThread.length - 4].content?.text;
-          console.log("FOUND HIDDEN MESSAGE: ", messageBeforeHandoff);
-          responses.push(messageBeforeHandoff);
         }
       }
 
