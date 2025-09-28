@@ -412,6 +412,16 @@ export const handler = async (event, context) => {
         } catch (musicError) {
           console.error("❌ STEP 2: Errore musica:", musicError);
         }
+
+        // find if there are other non-human replies all packed into one
+        if (
+          session.chatThread[session.chatThread.length - 4]?.role === "assistant" &&
+          session.chatThread[session.chatThread.length - 5]?.role === "user"
+        ) {
+          let messageBeforeHandoff = session.chatThread[session.chatThread.length - 4].content?.text;
+          console.log("FOUND HIDDEN MESSAGE: ", messageBeforeHandoff);
+          responses.push(messageBeforeHandoff);
+        }
       }
 
       // AGGIUNGI LA PRIMA RISPOSTA
