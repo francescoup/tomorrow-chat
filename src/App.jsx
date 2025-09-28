@@ -119,7 +119,7 @@ function App() {
   };
 
   return (
-    <div className="flex w-full h-screen overflow-hidden dark:bg-[#1A1C20] transition-all">
+    <div className="flex w-full h-screen overflow-hidden bg-gray-100 dark:bg-[#1A1C20] transition-all">
       <div className="hidden md:block w-24 bg-white dark:bg-[#1A1C20] p-4 border-r-1 border-gray-200 dark:border-gray-700">
         <div className="flex flex-col gap-4 items-center py-2">
           <IconWrapper icon={<MdSettings />} />

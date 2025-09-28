@@ -9,7 +9,7 @@ export default function Header({ theme, setTheme }) {
       ${
         theme === "dark"
           ? "bg-[#20233C] border-gray-700 text-gray-100"
-          : "bg-white border-gray-200 text-gray-800"
+          : "bg-gray-100 border-gray-200 text-gray-800"
       }`}
     >
       {/* inserisco l'immagine prima della scritta  */}
