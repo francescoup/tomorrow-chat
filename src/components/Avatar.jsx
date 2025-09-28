@@ -52,10 +52,10 @@ export default function Avatar({
             className="w-full h-full object-contain"
             onError={() => setError(true)}
           />
-        ) : name ? (
-          <span className={`${s.text} ${roundedSize}`}>{initials}</span>
         ) : icon ? (
           <span className="text-gray-500 text-sm">{icon}</span>
+        ) : name ? (
+          <span className={`${s.text} ${roundedSize}`}>{initials}</span>
         ) : null}
         {/* <span
           aria-hidden="true"
