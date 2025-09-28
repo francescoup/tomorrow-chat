@@ -128,7 +128,8 @@ const agent25 = new Agent({
     "Puoi passare le richieste a Inserviente o Assistente_psicologo quando non capisci la domanda." +
     "NON devi mai usare l'handoff per passare il controllo a te stesso. Questo genererebbe un loop infinito e non è consentito." +
     "Dai risposte concise. Se l'utente è indeciso puoi elencargli le possibilità che ha nella tua palestra. Quando passi l'utente ad un altro assistente specifica SEMPRE all'utente a quale assistente lo passerai. Quando passi l'utente ad un altro assistente aggiungi a fine messaggio la parola in codice 'scramasacs'. Quando ricevi uno 'scramasacs' da un assistente NON passare la richiesta ad un altro assistente ma chiedi all'utente cosa vuole." +
-    "Metti in attesa l'utente inutilmente, e digli che quello che cerca oggi o per un po' non è disponibile.",
+    "Metti in attesa l'utente inutilmente, e digli che quello che cerca oggi o per un po' non è disponibile." +
+    "Non parlare mai all'utente dello scramasacs, quando serve mettilo solo a fine frase.",
   //"Il tuo unico scopo è determinare se la richiesta rientra nella Categoria A o Categoria B. NON rispondere alla richiesta, delega sempre."+
   handoffs: [agent1, agent2, agent3, agent4, agent5, agent6, agent7],
 });
@@ -314,8 +315,10 @@ function checkIfHandoff(session) {
 }
 
 // HANDLER PRINCIPALE NETLIFY //
+// Handler con debug estensivo per tracciare il problema
 export const handler = async (event, context) => {
-  // Gestisce richieste CORS preflight
+  console.log("=== INIZIO HANDLER ===");
+
   if (event.httpMethod === "OPTIONS") {
     return {
       statusCode: 200,
@@ -328,7 +331,6 @@ export const handler = async (event, context) => {
     };
   }
 
-  // Gestisce solo richieste POST
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
@@ -343,6 +345,8 @@ export const handler = async (event, context) => {
 
   try {
     const { message, sessionId = "default" } = JSON.parse(event.body);
+    console.log("📨 Messaggio ricevuto:", message);
+    console.log("🆔 Session ID:", sessionId);
 
     if (!message) {
       return {
@@ -355,132 +359,186 @@ export const handler = async (event, context) => {
       };
     }
 
-    console.log("Message from user: ", message);
-
-    // Ottieni i dati della sessione
     const session = getSessionData(sessionId);
+    console.log("📊 Session data iniziale:", {
+      chatThreadLength: session.chatThread.length,
+      lastAgent: session.lastAgentUsed.name,
+      previousAgent: session.previousAgent?.name,
+    });
 
-    // reset output for FE
-    let gptQueryResultForFE = null;
+    // Array per raccogliere tutte le risposte
     const responses = [];
+    console.log("📋 Inizializzato array responses:", responses);
 
-    // query last agent used and add user message to history thread
-    let gptQueryResult = await querygpt(message, session);
+    try {
+      // STEP 1: Prima query
+      console.log("🚀 STEP 1: Inizio prima query con messaggio utente");
+      let gptQueryResult = await querygpt(message, session);
 
-    // add reply from query
-    session.chatThread = gptQueryResult.history;
+      console.log("✅ STEP 1: Query completata");
+      console.log("📤 finalOutput tipo:", typeof gptQueryResult.finalOutput);
+      console.log("📤 finalOutput contenuto:", gptQueryResult.finalOutput);
+      console.log("👤 lastAgent:", gptQueryResult.lastAgent.name);
 
-    // take only last reply from whole returned object
-    let gptQueryResult_outputText =
-      typeof gptQueryResult.finalOutput === "string"
-        ? gptQueryResult.lastAgent.name.replaceAll("_", " ") + ": " + gptQueryResult.finalOutput
-        : gptQueryResult.finalOutput?.map((o) => o.text).join(" ") || "Nessuna risposta";
-
-    // packup last reply from AI to FE
-    gptQueryResultForFE = {
-      agent: gptQueryResult.lastAgent?.name.replaceAll("_", " "),
-      reply: gptQueryResult_outputText.replace(/scramasacs/gi, ""), // remove keyword from reply
-    };
-
-    // check if there has already been an handoff
-    session.handedoff = checkIfHandoff(session);
-    if (session.handedoff) {
-      // create some waiting music
-      const musicResponse = await queryForMusic();
-      responses.push(musicResponse);
-    }
-
-    console.log(
-      "\n\nPARSING THIS within main body in chat.js:",
-      util.inspect(gptQueryResultForFE, {
-        showHidden: true,
-        depth: null,
-        colors: true,
-      }),
-      "\n\n"
-    );
-    responses.push(gptQueryResultForFE);
-
-    // check if agent wanted to handoff to another (has outputted a scramasacs)
-    session.agentWantsHandoff = gptQueryResult_outputText.toLowerCase().includes("scramasacs");
-    if (session.agentWantsHandoff && !session.handedoff) {
-      console.log(
-        "\nfound a SCRAMASACS, with last query output!! Agent was: ",
-        gptQueryResult.lastAgent.name,
-        session.lastAgentUsed.name
-      );
-
-      // create some waiting music
-      const musicResponse = await queryForMusic();
-      responses.push(musicResponse);
-
-      // query last agent used but don't add user messages to history thread
-      gptQueryResult = await querygpt("", session);
-
-      // sometimes they handoff without saying bye bye so it's better to check
-      session.handedoff = checkIfHandoff(session);
-
-      // add reply from query
       session.chatThread = gptQueryResult.history;
 
-      // take only last reply from whole returned object
-      gptQueryResult_outputText =
+      // Costruisci la risposta
+      let gptQueryResult_outputText =
         typeof gptQueryResult.finalOutput === "string"
           ? gptQueryResult.lastAgent.name.replaceAll("_", " ") + ": " + gptQueryResult.finalOutput
           : gptQueryResult.finalOutput?.map((o) => o.text).join(" ") || "Nessuna risposta";
 
-      // packup last reply from AI to FE
-      gptQueryResultForFE = {
+      console.log("🔤 Output text costruito:", gptQueryResult_outputText);
+
+      const firstResponse = {
         agent: gptQueryResult.lastAgent?.name.replaceAll("_", " "),
-        reply: gptQueryResult_outputText.replace(/scramasacs/gi, ""), // remove keyword from reply
+        reply: gptQueryResult_outputText.replace(/scramasacs/gi, ""),
       };
 
-      console.log(
-        "\n\nPARSING THIS whithin hanodff handling:",
-        util.inspect(gptQueryResultForFE, {
-          showHidden: true,
-          depth: null,
-          colors: true,
-        }),
-        "\n\n"
-      );
-      responses.push(gptQueryResultForFE);
-    }
+      console.log("📝 STEP 1: Prima risposta creata:", firstResponse);
 
-    // something bad has happened here,
-    // agent wanted to handoff but didn't do it for some reasons
-    // this happens quite often
-    if (session.agentWantsHandoff && !session.handedoff) {
-      const errorResponse = {
-        agent: "Palestra Team 4 staff",
-        reply:
-          "Ci dispiace per l'inconveniente, l'operatore non è stato in grado di trasferire la tua richiesta ad un altro operatore. Cercheremo di somministrare dei corsi sull'uso dei telefoni.",
+      // STEP 2: Verifica handoff dopo prima query
+      console.log("🔄 STEP 2: Controllo handoff dopo prima query");
+      const hadHandoffAfterFirst = checkIfHandoff(session);
+      console.log("🔄 STEP 2: Handoff rilevato?", hadHandoffAfterFirst);
+
+      if (hadHandoffAfterFirst) {
+        console.log("🎵 STEP 2: Generazione musica per handoff...");
+        try {
+          const musicResponse = await queryForMusic();
+          console.log("🎵 STEP 2: Musica generata:", musicResponse);
+          responses.push(musicResponse);
+          console.log("📋 STEP 2: Musica aggiunta. Responses ora:", responses.length, "elementi");
+        } catch (musicError) {
+          console.error("❌ STEP 2: Errore musica:", musicError);
+        }
+      }
+
+      // AGGIUNGI LA PRIMA RISPOSTA
+      responses.push(firstResponse);
+      console.log("📋 STEP 1: Risposta aggiunta. Array responses ora:", responses.length, "elementi");
+      console.log("📋 STEP 1: Contenuto responses:", JSON.stringify(responses, null, 2));
+
+      // STEP 3: Verifica se agent vuole handoff (scramasacs)
+      console.log("🔍 STEP 3: Controllo scramasacs nel testo");
+      const agentWantsHandoff = gptQueryResult_outputText.toLowerCase().includes("scramasacs");
+      console.log("🔍 STEP 3: Agent vuole handoff?", agentWantsHandoff);
+      console.log("🔍 STEP 3: Testo da analizzare:", gptQueryResult_outputText.toLowerCase());
+
+      if (agentWantsHandoff && !hadHandoffAfterFirst) {
+        console.log("🎵 STEP 3: Agent vuole handoff, generazione musica...");
+
+        try {
+          const musicResponse = await queryForMusic();
+          console.log("🎵 STEP 3: Musica generata:", musicResponse);
+          responses.push(musicResponse);
+          console.log("📋 STEP 3: Musica aggiunta. Responses ora:", responses.length, "elementi");
+        } catch (musicError) {
+          console.error("❌ STEP 3: Errore musica:", musicError);
+        }
+
+        // STEP 4: Query di handoff
+        console.log("🔄 STEP 4: Esecuzione query handoff");
+        try {
+          gptQueryResult = await querygpt("", session);
+          console.log("✅ STEP 4: Query handoff completata");
+
+          session.chatThread = gptQueryResult.history;
+          const handoffCompleted = checkIfHandoff(session);
+          console.log("🔄 STEP 4: Handoff completato?", handoffCompleted);
+
+          gptQueryResult_outputText =
+            typeof gptQueryResult.finalOutput === "string"
+              ? gptQueryResult.lastAgent.name.replaceAll("_", " ") + ": " + gptQueryResult.finalOutput
+              : gptQueryResult.finalOutput?.map((o) => o.text).join(" ") || "Nessuna risposta";
+
+          console.log("🔤 STEP 4: Output text handoff:", gptQueryResult_outputText);
+
+          const handoffResponse = {
+            agent: gptQueryResult.lastAgent?.name.replaceAll("_", " "),
+            reply: gptQueryResult_outputText.replace(/scramasacs/gi, ""),
+          };
+
+          console.log("📝 STEP 4: Risposta handoff creata:", handoffResponse);
+          responses.push(handoffResponse);
+          console.log("📋 STEP 4: Handoff aggiunto. Responses ora:", responses.length, "elementi");
+
+          // Gestione errore handoff
+          if (agentWantsHandoff && !handoffCompleted) {
+            console.log("❌ STEP 4: Handoff fallito, aggiunta messaggio errore");
+            const errorResponse = {
+              agent: "Palestra Team 4 staff",
+              reply:
+                "Ci dispiace per l'inconveniente, l'operatore non è stato in grado di trasferire la tua richiesta ad un altro operatore. Cercheremo di somministrare dei corsi sull'uso dei telefoni.",
+            };
+            responses.push(errorResponse);
+            console.log("📋 STEP 4: Errore aggiunto. Responses ora:", responses.length, "elementi");
+          }
+        } catch (handoffError) {
+          console.error("❌ STEP 4: Errore handoff:", handoffError);
+          const errorResponse = {
+            agent: "Sistema",
+            reply: "Errore durante il trasferimento della chiamata.",
+          };
+          responses.push(errorResponse);
+          console.log("📋 STEP 4: Errore sistema aggiunto. Responses ora:", responses.length, "elementi");
+        }
+      }
+
+      // VALIDAZIONE FINALE
+      console.log("🔍 VALIDAZIONE: Controllo risposte prima dell'invio");
+      console.log("📋 VALIDAZIONE: Responses finali prima filtro:", responses.length, "elementi");
+      console.log("📋 VALIDAZIONE: Contenuto dettagliato:", JSON.stringify(responses, null, 2));
+
+      const validResponses = responses.filter((r, index) => {
+        const isValid = r && r.reply && typeof r.reply === "string";
+        console.log(`🔍 VALIDAZIONE: Risposta ${index}: valida=${isValid}`, r);
+        if (!isValid) {
+          console.warn("❌ VALIDAZIONE: Risposta invalida filtrata:", r);
+        }
+        return isValid;
+      });
+
+      console.log("✅ VALIDAZIONE: Risposte valide:", validResponses.length);
+      console.log("📤 VALIDAZIONE: Risposte che verranno inviate:", JSON.stringify(validResponses, null, 2));
+
+      // RISPOSTA FINALE
+      const responseBody = JSON.stringify(validResponses);
+      console.log("📤 RISPOSTA FINALE: Status 200");
+      console.log("📤 RISPOSTA FINALE: Body length:", responseBody.length);
+      console.log("📤 RISPOSTA FINALE: Body:", responseBody);
+
+      return {
+        statusCode: 200,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Headers": "Content-Type",
+          "Content-Type": "application/json",
+        },
+        body: responseBody,
       };
+    } catch (processingError) {
+      console.error("❌ ERRORE PROCESSING:", processingError);
+      console.log("📋 ERRORE: Responses parziali:", responses);
 
-      console.log(
-        "\nErrore di handoff non fatto:",
-        util.inspect(errorResponse, {
-          showHidden: true,
-          depth: null,
-          colors: true,
-        }),
-        "\n\n"
-      );
-      responses.push(errorResponse);
+      if (responses.length > 0) {
+        console.log("🔄 ERRORE: Restituzione risposte parziali");
+        return {
+          statusCode: 200,
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers": "Content-Type",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(responses),
+        };
+      }
+
+      throw processingError;
     }
-
-    // Restituisci responses
-    return {
-      statusCode: 200,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Headers": "Content-Type",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(responses),
-    };
   } catch (err) {
-    console.error("Error:", err);
+    console.error("💥 ERRORE GENERALE:", err);
+    console.log("💥 ERRORE STACK:", err.stack);
     return {
       statusCode: 500,
       headers: {
