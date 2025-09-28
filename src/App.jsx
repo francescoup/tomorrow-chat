@@ -15,6 +15,7 @@ function App() {
       message:
         "Buongiorno e benvenut* nel servizio di assistenza online h24 della Palestra Team4, come posso aiutarti?",
       isUser: false,
+      name: "Centralinista",
       time: new Date().toLocaleTimeString([], {
         hour: "2-digit",
         minute: "2-digit",
