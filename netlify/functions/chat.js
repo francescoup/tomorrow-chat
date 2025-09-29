@@ -423,11 +423,12 @@ export const handler = async (event, context) => {
             break;
           }
           if (session.chatThread[session.chatThread.length - i]?.role === "assistant") {
-            // name of replying agent is found in history just before ita message (in position arraylength-(i+1))
+            // name of replying agent is found in history just before its message (in position arraylength-(i+1)) if there have been at least 2 handoffs
+            // or it's simply the lastAgent.name
             let oldAgentName =
               typeof session.chatThread[session.chatThread.length - (i + 1)]?.output?.text === "string"
                 ? JSON.parse(session.chatThread[session.chatThread.length - (i + 1)].output?.text).assistant
-                : "Qualcuno della Palestra Team4";
+                : gptQueryResult.lastAgent?.name.replaceAll("_", " ");
 
             let messageBeforeHandoff = {
               agent: "MAYBE" + oldAgentName.replaceAll("_", " "),
