@@ -1,12 +1,94 @@
-# React + Vite
+# Table of Contents
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+---
 
-Currently, two official plugins are available:
+1. [Project name](#project-name)
+2. [General Info](#general-info)
+3. [Features](#features)
+4. [Screenshot](#screenshot)
+5. [Tech Stack](#tech-stack)
+6. [Prerequisites](#prerequisites)
+7. [Installation Usage](#installation-usage)
+8. [Authors](#authors)
+9. [License](#license)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Project name
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+**Team4 Gym – Support Chat**
+
+## General Info
+
+---
+
+A real-time chat application for Team4 Gym's customer support.
+
+### Features
+
+---
+
+* ✅**Interactive chat** between user and bot;
+* ✅ **Custom bot avatars**  
+* ✅ **Light/Dark theme** with toggle  
+* ✅ **Responsive UI** for both desktop and mobile
+* ✅ **Settings** panel:
+  - 🎛️ **Change chat bubble colors** (user and bot)
+  - 🎨 **Change text color** inside bubbles
+  - 🔠 **Adjust text size** (S / M / L / XL)
+### Screenshot
+
+---
+
+* ![Chat Preview](./src/assets/img/immagine_1.png)
+* ![Chat Preview](./src/assets/img/immagine_2.png)
+* ![Chat Preview](./src/assets/img/immagine_3.png)
+
+## Tech Stack
+
+---
+
+* ⚛️ **React**
+* ⚡ **Vite**
+* 🎨 **Tailwind CSS**
+* 🖼️ **React Icons**
+
+## Prerequisites
+
+---
+
+- [Git](https://git-scm.com/) – to clone the repository
+- [Node.js](https://nodejs.org/) (v18+) – to run the project
+- [npm](https://www.npmjs.com/) – for package management
+
+## Installation Usage
+
+---
+
+- git clone https://github.com/francescoup/tomorrow-chat.git
+- cd tomorrow-chat
+- npm install
+- npm run dev
+
+### Examples
+
+---
+
+**Live Demo:** [DEMO](https://tomorrowchat.netlify.app/)
+
+## Authors
+
+---
+
+- Cristian
+- Francesco
+- Margherita
+- Michele
+- Valentino
+- Vincenzo
+
+## License
+
+---
+
+Distributed under the MIT License.
