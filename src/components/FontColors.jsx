@@ -3,7 +3,7 @@ import { useGlobalStore } from "../store/useGlobalStore";
 
 const colorsText = [
   { label: "text-white", bgColor: "bg-white" },
-  { label: "text-gray-800", bgColor: "bg-gray-800" },
+  { label: "dark:text-black text-black", bgColor: "dark:bg-black bg-gray-950" },
 ];
 
 const FontColors = () => {
@@ -11,7 +11,7 @@ const FontColors = () => {
     useGlobalStore();
   return (
     <div className="flex flex-col gap-4 w-full">
-      <span className="text-gray-400 w-full text-sm">Your Message color</span>
+      <span className="text-gray-600 dark:text-gray-400 w-full text-sm">Your Message Color</span>
       <ul className="flex gap-4">
         {colorsText.map((color, i) => {
           return (
@@ -27,7 +27,7 @@ const FontColors = () => {
           );
         })}
       </ul>
-      <span className="text-gray-400 w-full text-sm">Bot Message Color</span>
+      <span className="text-gray-600 dark:text-gray-400 w-full text-sm">Bot Message Color</span>
       <ul className="flex gap-4">
         {colorsText.map((color, i) => {
           return (

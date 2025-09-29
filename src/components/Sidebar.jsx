@@ -18,7 +18,7 @@ const Sidebar = ({ isOpen = false, closeSidebar = () => {} }) => {
       {/* Sidebar */}
       <div
         className={twMerge(
-          `fixed z-50 bg-white shadow-lg transition-transform duration-300
+          `fixed z-50 bg-white dark:bg-[#1A1C21] shadow-lg transition-transform duration-300
            w-full h-2/3 bottom-0 right-0
            transform translate-y-full 
            md:top-0 md:bottom-auto md:h-full md:w-80 md:translate-y-0 md:translate-x-full`,
@@ -26,7 +26,7 @@ const Sidebar = ({ isOpen = false, closeSidebar = () => {} }) => {
         )}
       >
         <div className="p-6 flex flex-col gap-4">
-          <h2 className="text-lg font-semibold mb-4">Setting</h2>
+          <h2 className="text-xl text-gray-800 dark:text-gray-200 text-center font-semibold mb-4">Settings</h2>
 
           <FontSize />
           <BubbleColor />

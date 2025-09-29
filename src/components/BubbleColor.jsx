@@ -2,10 +2,10 @@ import React from "react";
 import { useGlobalStore } from "../store/useGlobalStore";
 
 const colorsBubble = [
-  { label: "bg-blue-600", bgColor: "bg-blue-600" },
-  { label: "bg-yellow-400", bgColor: "bg-yellow-400" },
-  { label: "bg-green-800", bgColor: "bg-green-800" },
-  { label: "bg-gray-800", bgColor: "bg-gray-800" },
+  { label: "dark:bg-[#4283D4] bg-blue-500", bgColor: "dark:bg-[#4283D4] bg-blue-500" },
+  { label: "dark:bg-[#DBA842] bg-yellow-400", bgColor: "dark:bg-[#DBA842] bg-yellow-400" },
+  { label: "dark:bg-[#38A84A] bg-[#42DB5B]", bgColor: "dark:bg-[#38A84A]  bg-[#42DB5B]" },
+  { label: "dark:bg-[#292B3B] bg-gray-700", bgColor: "dark:bg-[#292B3B] bg-gray-700" },
 ];
 
 const BubbleColor = () => {
@@ -17,7 +17,7 @@ const BubbleColor = () => {
   } = useGlobalStore();
   return (
     <div className="flex flex-col gap-4 w-full">
-      <span className="text-gray-400 w-full text-sm">Your Bubble color</span>
+      <span className="text-gray-600 dark:text-gray-400 w-full text-sm">Your Bubble Color</span>
       <ul className="flex justify-between">
         {colorsBubble.map((color, i) => {
           return (
@@ -33,7 +33,7 @@ const BubbleColor = () => {
           );
         })}
       </ul>
-      <span className="text-gray-400 w-full text-sm">Bot Bubble Color</span>
+      <span className="text-gray-600 dark:text-gray-400 w-full text-sm">Bot Bubble Color</span>
       <ul className="flex justify-between">
         {colorsBubble.map((color, i) => {
           return (

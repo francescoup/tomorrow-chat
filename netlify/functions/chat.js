@@ -200,7 +200,7 @@ async function queryForMusic() {
 
     return {
       agent: "Musichetta d'attesa",
-      reply: "[Muichetta d'attesa]: 🎶" + music.output_text + "🎶" || "",
+      reply: "[Musichetta d'attesa]: 🎶" + music.output_text + "🎶" || "",
     };
   } catch (error) {
     console.error("Error generating music:", error);

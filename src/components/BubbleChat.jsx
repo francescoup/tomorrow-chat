@@ -39,8 +39,8 @@ export default function BubbleChat({
       <p
         className={`mt-1 text-xs ${
           isUser
-            ? "text-blue-100 flex justify-end dark:text-blue-100"
-            : "text-gray-500 dark:text-gray-300"
+            ? "text-blue-100 dark:text-blue-100 flex justify-end"
+            : "text-gray-200 dark:text-gray-200"
         }`}
       >
         {time}

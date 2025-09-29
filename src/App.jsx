@@ -7,7 +7,7 @@ import IconWrapper from "./components/IconWrapper";
 import Avatar from "./components/Avatar";
 import Sidebar from "./components/Sidebar";
 import { MdSettings } from "react-icons/md";
-import { FaUser } from "react-icons/fa";
+import { FaUser, FaGithub } from "react-icons/fa";
 import logoAvatar from "./assets/img/logoAvatar.png";
 import { useGlobalStore } from "./store/useGlobalStore";
 
@@ -125,6 +125,15 @@ function App() {
     }
   };
 
+  const CONTRIBUTORS = [
+  { name: "Cristian", url: "https://github.com/Athal-C" },
+  { name: "Francesco", url: "https://github.com/francescoup" },
+  { name: "Margherita", url: "https://github.com/marghe27" },
+  { name: "Michele", url: "https://github.com/micheleorl" },
+  { name: "Valentino", url: "https://github.com/ValentinoGregorutti" },
+  { name: "Vincenzo", url: "https://github.com/giammona1998" },
+];
+
   return (
     <div className="flex w-full h-screen overflow-hidden bg-gray-100 dark:bg-[#1A1C20] transition-all">
       <div className="hidden md:block w-24 bg-white dark:bg-[#1A1C20] p-4 border-r-1 border-gray-200 dark:border-gray-700">
@@ -152,8 +161,43 @@ function App() {
         </div>
       </div>
 
-      <div className="hidden md:block w-96 bg-white dark:bg-[#1A1C21] p-4">
-        <p>Chat History</p>
+      <div className="hidden md:block w-96 bg-white dark:bg-[#1A1C21] p-4 border-l border-gray-200 dark:border-gray-700">
+        <h2 className="text-lg font-semibold mb-6 text-gray-800 dark:text-gray-100 text-center">
+          CONTRIBUTORS
+        </h2>
+        <ul className="space-y-3 flex flex-col items-center">
+          {CONTRIBUTORS.map((contributor) => (
+            <li key={contributor.url} className="w-full">
+              <div className="flex items-center justify-start gap-2 text-gray-800 dark:text-gray-100">
+                <span className="w-2 h-2 rounded-full bg-blue-600 dark:bg-blue-400 inline-block align-middle" />
+                <span className="text-base font-semibold">{contributor.name}</span>
+                <a
+                  href={contributor.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mr-3 text-xl text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex-shrink-0"
+                  aria-label={`GitHub profile of ${contributor.name}`}
+                >
+                  <FaGithub />
+                </a>
+              </div>
+            </li>
+          ))}
+        </ul>
+        <div className="mt-16 flex items-center justify-center gap-2">
+          <span className="text-lg font-semibold text-gray-700 dark:text-gray-300">
+            View our project on &gt;
+          </span>
+          <a
+            href="https://github.com/francescoup/tomorrow-chat"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xl text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+            aria-label="GitHub repository"
+          >
+            <FaGithub />
+          </a>
+        </div>
       </div>
       <Sidebar isOpen={sidebar} closeSidebar={updateSidebar} />
     </div>
