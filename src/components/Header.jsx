@@ -1,8 +1,12 @@
 import IconWrapper from "./IconWrapper";
 import { FaMoon, FaSun } from "react-icons/fa";
+import { MdSettings } from "react-icons/md";
 import logoCompleto from "../assets/img/logoCompleto.png";
+import { useGlobalStore } from "../store/useGlobalStore";
 
 export default function Header({ theme, setTheme }) {
+  const { sidebar, updateSidebar } = useGlobalStore();
+
   return (
     <div
       className={`w-full h-[88px] px-6 flex items-center justify-between border-b
@@ -25,6 +29,12 @@ export default function Header({ theme, setTheme }) {
       </div>
 
       <div className="flex items-center gap-2 h-[40px]">
+        <IconWrapper
+          className="block md:hidden"
+          icon={<MdSettings />}
+          onClick={updateSidebar}
+        />
+
         <IconWrapper
           icon={theme === "dark" ? <FaSun /> : <FaMoon />}
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}

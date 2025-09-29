@@ -5,9 +5,11 @@ import ChatApp from "./components/ChatApp";
 import InputForm from "./components/InputForm";
 import IconWrapper from "./components/IconWrapper";
 import Avatar from "./components/Avatar";
+import Sidebar from "./components/Sidebar";
 import { MdSettings } from "react-icons/md";
 import { FaUser } from "react-icons/fa";
 import logoAvatar from "./assets/img/logoAvatar.png";
+import { useGlobalStore } from "./store/useGlobalStore";
 
 function App() {
   const [messages, setMessages] = useState([
@@ -32,7 +34,12 @@ function App() {
 
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+  const { sidebar, updateSidebar } = useGlobalStore();
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
 
@@ -122,7 +129,7 @@ function App() {
     <div className="flex w-full h-screen overflow-hidden bg-gray-100 dark:bg-[#1A1C20] transition-all">
       <div className="hidden md:block w-24 bg-white dark:bg-[#1A1C20] p-4 border-r-1 border-gray-200 dark:border-gray-700">
         <div className="flex flex-col gap-4 items-center py-2">
-          <IconWrapper icon={<MdSettings />} />
+          <IconWrapper icon={<MdSettings />} onClick={updateSidebar} />
           {/* <Avatar size="md" icon={<FaUser />} /> */}
           <Avatar size="md" src={logoAvatar} />
         </div>
@@ -148,6 +155,7 @@ function App() {
       <div className="hidden md:block w-96 bg-white dark:bg-[#1A1C21] p-4">
         <p>Chat History</p>
       </div>
+      <Sidebar isOpen={sidebar} closeSidebar={updateSidebar} />
     </div>
   );
 }
