@@ -10,7 +10,7 @@ const Sidebar = ({ isOpen = false, closeSidebar = () => {} }) => {
       {/* Overlay (cliccabile per chiudere) */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/30 z-40"
+          className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
           onClick={closeSidebar}
         />
       )}
